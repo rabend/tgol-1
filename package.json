@@ -35,7 +35,9 @@
   },
   "dependencies": {
     "bluebird": "^3.4.1",
+    "browserify-middleware": "^7.0.0",
     "bulk-require": "^1.0.0",
+    "coffeeify": "^2.0.1",
     "deepmerge": "^0.2.10",
     "js-yaml": "^3.6.1"
   }

@@ -35,7 +35,7 @@ describe "The Service", ->
   settings = loadYaml path.resolve __dirname, "../settings.yaml"
   settings.port = 9988
 
-  base = "http://localhost:#{settings.port}"
+  base = "http://localhost:#{settings.port}/api"
   beforeEach ->
     builder = Builder()
     CGOL_HOME = tmpFileName @test
