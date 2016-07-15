@@ -4,12 +4,14 @@
   "description": "Several cell-configurations compete in a tournament; Inspired by Conway's Game of Life",
   "main": "index.js",
   "scripts": {
-    "prepublish": "coffee --compile --output lib src",
+    "prepublish": "coffee --compile --output lib src && npm run copy-dist && npm run browserify",
     "test": "mocha spec --recursive --require spec/helpers/chai.js --require coffee-script/register --compilers coffee:coffee-script/register",
     "test-debug": "node-debug node_modules/mocha/bin/_mocha  --recursive spec --require spec/helpers/chai.js --require coffee-script/register --compilers coffee:coffee-script/register --no-timeouts --debug-brk",
     "test-watch": "mocha -b --recursive -w spec --require spec/helpers/chai.js --require coffee-script/register --compilers coffee:coffee-script/register",
     "test-jenkins": "JUNIT_REPORT_PATH=report.xml JUNIT_REPORT_STACK=1 mocha spec --recursive --require spec/helpers/chai.js --timeout 15000 --reporter mocha-jenkins-reporter --require coffee-script/register --compilers coffee:coffee-script/register||true",
-    "start": "coffee src/main.coffee"
+    "start": "coffee src/main.coffee",
+    "browserify": "mkdir -p dist/js && browserify -e lib/client/index.js  -o dist/js/client.js",
+    "copy-dist":"mkdir -p dist && cp -r static/* dist"
   },
   "repository": {
     "type": "git",

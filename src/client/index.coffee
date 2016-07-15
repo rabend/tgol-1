@@ -66,7 +66,8 @@ registerListeners = ->
   #svg.on "touchend", ->
   svg.on "click", ->
     p = @createSVGPoint()
-    {x:p.x,y:p.y}=d3.event
+    p.x = d3.event.clientX
+    p.y = d3.event.clientY
     click.call this, p
     render board
   svg.on "touchstart",->
