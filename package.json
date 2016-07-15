@@ -11,7 +11,7 @@
     "test-jenkins": "JUNIT_REPORT_PATH=report.xml JUNIT_REPORT_STACK=1 mocha spec --recursive --require spec/helpers/chai.js --timeout 15000 --reporter mocha-jenkins-reporter --require coffee-script/register --compilers coffee:coffee-script/register||true",
     "start": "coffee src/main.coffee",
     "browserify": "mkdir -p dist/js && browserify -e lib/client/index.js  -o dist/js/client.js",
-    "copy-dist":"mkdir -p dist && cp -r static/* dist"
+    "copy-dist": "mkdir -p dist && cp -r static/* dist"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,7 @@
     "coffee-script": "^1.10.0",
     "mkdirp": "^0.5.1",
     "mocha": "^2.5.3",
+    "mocha-jenkins-reporter": "^0.2.3",
     "node-inspector": "^0.12.8",
     "readdirp": "^2.1.0",
     "rimraf": "^2.5.3",
