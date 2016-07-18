@@ -4,7 +4,7 @@
   "description": "Several cell-configurations compete in a tournament; Inspired by Conway's Game of Life",
   "main": "index.js",
   "scripts": {
-    "prepublish": "coffee --compile --output lib src && npm run copy-dist && npm run browserify",
+    "prepublish": "coffee --compile --output lib src && npm run copy-dist && npm run browserify && node mark-deps-bundled.js",
     "test": "mocha spec --recursive --require spec/helpers/chai.js --require coffee-script/register --compilers coffee:coffee-script/register",
     "test-debug": "node-debug node_modules/mocha/bin/_mocha  --recursive spec --require spec/helpers/chai.js --require coffee-script/register --compilers coffee:coffee-script/register --no-timeouts --debug-brk",
     "test-watch": "mocha -b --recursive -w spec --require spec/helpers/chai.js --require coffee-script/register --compilers coffee:coffee-script/register",
@@ -42,6 +42,7 @@
     "bulk-require": "^1.0.0",
     "coffeeify": "^2.0.1",
     "deepmerge": "^0.2.10",
+    "express": "^4.14.0",
     "js-yaml": "^3.6.1"
   }
 }
