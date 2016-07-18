@@ -1,6 +1,7 @@
 property = (name)->(d)->d[name]
 zoom = require "./zoom"
 Board = require "../board"
+Pattern = require "../pattern"
 
 board = Board """
  *|_|_|_|_|
@@ -58,6 +59,22 @@ render = (board)->
     .remove()
 
 registerListeners = ->
+  d3.select "#save-button"
+    .on "click", ->
+      name=window.prompt "Wie soll's denn heißen?", "fump?"
+      p=new Pattern(board.livingCells()).minimize()
+      board = Board p.cells
+      d3.select "#pattern-input"
+        .append "option"
+        .attr "label", name
+        .attr "value",p.codes()
+      render board
+  d3.select "#pattern-input"
+    .on "change", ->
+      codes = @value.split(",").map (c)->parseInt c
+      p=new Pattern codes
+      board = Board p.cells
+      render board
   svg = d3.select "svg"
   panel = d3.select ".panel.bottom"
   panel.on "click", ->

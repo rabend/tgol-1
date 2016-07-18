@@ -69,6 +69,33 @@ class Pattern
     new Pattern cells, @_bbox?.hflip()
   codes: ()->
     @_cantorCodes ?= @cells.map(cantorCode).sort (a,b)->a-b
+  compareTo: (o)->
+    myCodes = @codes().slice().reverse()
+    otherCodes = o.codes().slice().reverse()
+    for i in [0...Math.max(myCodes.length, otherCodes.length)]
+      a=myCodes[i] ? -1
+      b=otherCodes[i] ? -1
+      return a-b if a!=b
+    return 0
+  similarPatterns: ->
+    [
+      a=@normalize()
+      a=a.vflip().normalize()
+      a=a.transpose().normalize()
+      a=a.vflip().normalize()
+      a=a.transpose().normalize()
+      a=a.vflip().normalize()
+      a=a.transpose().normalize()
+      a=a.vflip().normalize()
+    ]
+    
+  minimize: ->
+    min = null
+    min = a for a in @similarPatterns() when not min? or (a.compareTo(min) < 0)
+
+    min
+
+
 
 
 module.exports= Pattern

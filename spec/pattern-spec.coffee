@@ -1,5 +1,5 @@
 describe "A Pattern", ->
-  
+
   Pattern = require "../src/pattern"
   cell = (x,y)->[x,y]
 
@@ -7,14 +7,14 @@ describe "A Pattern", ->
     expect( ->Pattern [] ).to.throw /new/
 
   it "can be created from and represented as ASCII-art", ->
-    p = new Pattern """ 
+    p = new Pattern """
      _|_|_|_|_|
      _|_|*|_|_|
      _|_|_|*|_|
      _|*|*|*|_|
      _|_|_|_|_|
     """
-  
+
     expect(p.cells).to.eql [
       cell 2,1
       cell 3,2
@@ -40,20 +40,7 @@ describe "A Pattern", ->
      _|_|*|
      *|*|*|
     """
-  it "is fun" ,->
-    p= new Pattern [10...20]
-    q= new Pattern [[0,0],[9,0],[0,9],[9,9]]
-    console.log p.asciiArt()
-    console.log q.codes()
-    console.log q.asciiArt()
-    pairs = []
-    for x in [0..9]
-      for y in [0..9]
-        pairs.push [x,y]
-    codes = (new Pattern pairs).codes()
-    console.log codes
 
-      
   it "can be encoded as an array of Cantor Numbers", ->
     p = new Pattern """
      _|*|_|
@@ -76,7 +63,7 @@ describe "A Pattern", ->
     """
 
   it "can produce a vertically flipped copy of itself", ->
-    p = new Pattern """ 
+    p = new Pattern """
      _|_|_|_|_|
      _|_|*|_|_|
      _|_|_|*|_|
@@ -89,9 +76,9 @@ describe "A Pattern", ->
      _|_|*|
      _|*|_|
     """
-  
+
   it "can produce a horizontally flipped copy of itself", ->
-    p = new Pattern """ 
+    p = new Pattern """
      _|_|_|_|_|
      _|_|*|_|_|
      _|_|_|*|_|
@@ -108,7 +95,7 @@ describe "A Pattern", ->
   it "can produce a translated copy of itself",->
     p = new Pattern [
       cell -1, 4
-      cell 2, -5 
+      cell 2, -5
     ]
     p.bbox()
     p=p.translate(1,5)
@@ -122,11 +109,11 @@ describe "A Pattern", ->
       top:0
       right:4
       bottom:10
-  
+
   it "can produce a normalized copy of itself",->
     p = new Pattern [
       cell -1, 4
-      cell 2, -5 
+      cell 2, -5
     ]
 
     p=p.normalize()
@@ -141,7 +128,7 @@ describe "A Pattern", ->
       right:4
       bottom:10
 
-  xit "can be compared with other patterns", ->
+  it "can be compared with other patterns", ->
     a = new Pattern """
     _|*|
     _|_|
@@ -151,11 +138,75 @@ describe "A Pattern", ->
     _|_|*|
     *|_|_|
     """
-    
+
     c = new Pattern """
     *|_|_|
     _|_|*|
     """
 
     patterns = [a,b,c].sort (a,b)->a.compareTo b
-    expect(patterns).to.eql [] 
+    expect(patterns).to.eql [b,a,c]
+
+  it "can produce an array of all similar patterns", ->
+
+    a = new Pattern """
+    *|*|
+    _|_|
+    *|_|
+    """
+    similarPatterns = a.similarPatterns()
+
+    expect(similarPatterns.map (p)->p.asciiArt()).to.eql [
+      """
+      *|*|
+      _|_|
+      *|_|
+      """
+      """
+      *|_|
+      _|_|
+      *|*|
+      """
+
+      """
+      *|_|*|
+      _|_|*|
+      """
+      """
+      _|_|*|
+      *|_|*|
+      """
+
+      """
+      _|*|
+      _|_|
+      *|*|
+      """
+      """
+      *|*|
+      _|_|
+      _|*|
+      """
+
+      """
+      *|_|_|
+      *|_|*|
+      """
+      """
+      *|_|*|
+      *|_|_|
+      """
+    ]
+
+  it "can find the minimal similar pattern (as determined by .compareTo)", ->
+
+    a = new Pattern """
+    *|*|
+    _|_|
+    *|_|
+    """
+
+    expect(a.minimize().asciiArt()).to.eql """
+    *|_|*|
+    *|_|_|
+    """
