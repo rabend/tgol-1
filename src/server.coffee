@@ -3,7 +3,7 @@ module.exports = (CGOL_HOME, settings)->
   http = require "http"
   net = require "net"
 
-  Service = require "../src/service"
+  Service = require "./service"
 
   server = undefined
 

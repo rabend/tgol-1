@@ -1,5 +1,6 @@
 describe "The Board", ->
   Board = require "../src/board"
+  BBox = require("../src/bbox")
   cell = (x,y)->[x,y]
 
   it "has a list of living cells and a bounding box", ->
