@@ -74,3 +74,18 @@ circle {
   fill:none;
   stroke: red;
 }
+
+#qr-code {
+  height:150px;
+  position:absolute;
+  bottom:0px;
+  right:0px;
+}
+#qr-code svg {
+  height:90%;
+  background:white;
+}
+#qr-code path {
+  fill: green;
+  stroke: none;
+}

@@ -1,8 +1,12 @@
 property = (name)->(d)->d[name]
-zoom = require "./zoom"
+fit = require "./fit-viewport"
 Board = require "../board"
 Pattern = require "../pattern"
 
+qr = require "qr-image"
+d3 = require "d3-selection"
+d3Zoom = require "d3-zoom"
+zoom = d3Zoom.zoom()
 board = Board """
  *|_|_|_|_|
  _|_|*|_|_|
@@ -10,27 +14,12 @@ board = Board """
  _|*|*|*|_|
  _|_|_|_|*|
 """
-
+translate = scale = undefined
 render = (board)->
   cells = board.livingCells()
   svg = d3.select "svg"
   canvas = svg.select "g.canvas"
-  {width, height} = svg.node().getBoundingClientRect()
-  bbox = board.bbox()
-  extent =
-    left:bbox.left-1
-    top:bbox.top-1
-    right:bbox.right+1
-    bottom:bbox.bottom+1
-  viewport =
-    left:15
-    top:15
-    right:width-15
-    bottom:height-15
-  {scale, translate} = zoom extent, viewport
 
-  canvas.attr "transform", "translate(" + translate + ")scale(" + scale + ")"
-  canvas.style "stroke-width", 1/scale + "px"
   #canvas.append "circle"
   #  .attr "cx",2
   #  .attr "cy",2
@@ -80,25 +69,58 @@ registerListeners = ->
   panel.on "click", ->
     board = board.next()
     render board
+    zoomToBBox()
+
   #svg.on "touchend", ->
-  svg.on "click", ->
+  svg.on "click.toggle", ->
     p = @createSVGPoint()
     p.x = d3.event.clientX
     p.y = d3.event.clientY
-    click.call this, p
+    toggle.call this, p
     render board
-  svg.on "touchstart",->
-    svg.on "click", null
-    #d3.event.preventDefault()
+  handleTouchEnd = ->
+    console.log "end"
+    svg.on "touchend.toggle", null
     for touch in d3.event.changedTouches
       p = @createSVGPoint()
       p.x=touch.clientX
       p.y=touch.clientY
       click.call this, p
     render board
-  
+  svg.call zoom
+  svg.on "touchstart.toggle", ->
+    svg.on "click.toggle", null
+    svg.on "touchend.toggle", handleTouchEnd
+    console.log "add"
+  svg.on "touchmove.toggle", ->
+    console.log "remove"
+    svg.on "touchend.toggle", null
 
-click = (p) ->
+  zoom.on "zoom", ->
+    t= d3.event.transform
+    canvas = svg.select "g.canvas"
+    canvas.attr "transform", t
+    canvas.style "stroke-width", 1/t.k + "px"
+  
+zoomToBBox = ()->
+  svg = d3.select "svg"
+  {width, height} = svg.node().getBoundingClientRect()
+  bbox = board.bbox()
+  extent =
+    left:bbox.left-1
+    top:bbox.top-1
+    right:bbox.right+1
+    bottom:bbox.bottom+1
+  viewport =
+    left:15
+    top:15
+    right:width-15
+    bottom:height-15
+  {scale:k, translate:[x,y]} = fit extent, viewport
+  t = d3Zoom.zoomIdentity.translate(x, y).scale(k)
+  svg.transition().duration(750).call(zoom.transform,t)
+
+toggle = (p) ->
   p=p.matrixTransform d3.select(this).select("g.canvas").node().getScreenCTM().inverse()
   [x,y] = [p.x,p.y].map(Math.floor)
   board.toggle x,y
@@ -109,3 +131,6 @@ click = (p) ->
 window.onresize = -> render board
 render board
 registerListeners()
+zoomToBBox()
+d3.select "#qr-code"
+  .html (qr.imageSync window.location.toString(), type:"svg")

@@ -5,7 +5,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width" />
     <link href="styles/styles.css" rel="stylesheet" type="text/css" media="screen">
-    <script src="js/d3.js"></script>
+    <!--<script src="js/d3.js"></script>-->
   </head>
   <body>
     <div class="layout">
@@ -16,6 +16,7 @@
         <button id="delete-button">Delete...</button>
       </div>
       <svg class="main">
+        <rect class="mouse-catcher" x="0" y="0" width="1000" height="1000" style="fill:yellow;opacity:0;stroke:magenta;stroke-width:15;" />
         <g class="canvas"></g>
       </svg>
       <div class="panel bottom">
@@ -23,6 +24,7 @@
         <h2>Mais qu'est-ce que ça veut dire?</h2>
       </div>
     </div>
+    <div id="qr-code"></div>
     <script src="js/client.js"></script>
   </body>
 </html>
