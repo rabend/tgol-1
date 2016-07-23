@@ -13,6 +13,9 @@ module.exports = (CGOL_HOME, settings)->
   browserify.settings 'extensions', ['.coffee']
   browserify.settings 'transform', [coffeeify]
   browserify.settings 'grep', /\.coffee$|\.js$/
+  # debugging on android does not work if filesize is to big.
+  #browserify.settings.development 'debug', false
+  #browserify.settings.development 'minify', false
   entry = require.resolve "./client/index"
   service.get '/js/client.js', browserify entry
 

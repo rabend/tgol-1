@@ -30,8 +30,8 @@ input, textarea, select {
 }
 
 .layout {
-  padding-top: 80px;
-  padding-bottom: 100px;
+  padding-top: 64px;
+  padding-bottom: 64px;
 }
 .panel {
   padding-left: 1em;
@@ -45,11 +45,18 @@ input, textarea, select {
 .panel.bottom {
   border-top: solid 1px green;
   bottom:0px;
+  height:64px;
 }
-
+.commands {
+  height:100%;
+}
+.command {
+  height:100%;
+}
 .panel.top{
   border-bottom: solid 1px green;
-  top:0px
+  top:0px;
+  height:64px;
 }
 .main {
   position:relative;
@@ -58,11 +65,20 @@ input, textarea, select {
   width:100%;
   height:100%;
 }
+.wrapper {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0px;
+  padding: 0px;
+}
 svg {
-  border: solid 1px black;
+  /*border: solid 1px white;*/
   box-sizing:border-box;
   margin: 0px;
   padding: 0px;
+  width:100%;
+  height:100%;
 }
 
 .cell {
@@ -70,7 +86,11 @@ svg {
   stroke: white;
 }
 
-circle {
+.cell.selected {
+  fill:yellow;
+}
+
+.debug {
   fill:none;
   stroke: red;
 }

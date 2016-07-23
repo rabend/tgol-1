@@ -9,7 +9,7 @@ zoom=(ftr, vwp)->
   v = (vwp.left + vwp.right) / 2
   w = (vwp.top + vwp.bottom) / 2
 
-  scale = .9 / Math.max(dx / dv, dy / dw)
+  scale = 1 / Math.max(dx / dv, dy / dw)
   translate = [v - scale * x, w - scale * y]
   scale:scale
   translate:translate

@@ -32,6 +32,7 @@ Board = (spec)->
       kill i
     else
       spawn x,y
+    this
 
   neighbours = ([x,y])-> 
     [

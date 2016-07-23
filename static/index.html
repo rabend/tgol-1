@@ -6,25 +6,9 @@
     <meta name="viewport" content="width=device-width" />
     <link href="styles/styles.css" rel="stylesheet" type="text/css" media="screen">
     <!--<script src="js/d3.js"></script>-->
+    <script src="js/client.js"></script>
   </head>
   <body>
-    <div class="layout">
-      <div class="panel top">
-        <select list="pattern-list" id="pattern-input"></select>
-        <!--<datalist id="pattern-list"></datalist>-->
-        <button id="save-button">Save as...</button>
-        <button id="delete-button">Delete...</button>
-      </div>
-      <svg class="main">
-        <rect class="mouse-catcher" x="0" y="0" width="1000" height="1000" style="fill:yellow;opacity:0;stroke:magenta;stroke-width:15;" />
-        <g class="canvas"></g>
-      </svg>
-      <div class="panel bottom">
-        <h1><em>tGOL</em>, bazdmeg.</h1>
-        <h2>Mais qu'est-ce que ça veut dire?</h2>
-      </div>
-    </div>
-    <div id="qr-code"></div>
-    <script src="js/client.js"></script>
+    <div class="wrapper" id="app-root">
   </body>
 </html>
