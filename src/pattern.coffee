@@ -23,8 +23,8 @@ class Pattern
     throw new Error "you forgot to use 'new', doh!" if not (this instanceof Pattern)
     switch
       when typeof input == "string" then @cells= parseString input
-      when isArray input 
-        if isArray input[0] 
+      when isArray input
+        if isArray input[0]
           @cells = input
         else if typeof input[0] == "number"
           @cells = input.map cantorDecode
@@ -88,14 +88,19 @@ class Pattern
       a=a.transpose().normalize()
       a=a.vflip().normalize()
     ]
-    
+
   minimize: ->
     min = null
     min = a for a in @similarPatterns() when not min? or (a.compareTo(min) < 0)
 
     min
+  clip: (spec)->
+    box = new BBox spec
+    new Pattern @cells.filter (p)-> box.includes p
 
-
+  cut: (spec)->
+    box = new BBox spec
+    new Pattern @cells.filter (p)-> not box.includes p
 
 
 module.exports= Pattern

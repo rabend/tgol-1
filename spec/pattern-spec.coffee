@@ -210,3 +210,26 @@ describe "A Pattern", ->
     *|_|*|
     *|_|_|
     """
+  it "can extract a rectangular subpattern of itself", ->
+    a = new Pattern """
+    *|*|*|
+    *|*|*|
+    *|*|*|
+    """
+    expect(a.clip(left:0,top:0,right:2, bottom:2).asciiArt(right:3,bottom:3)).to.eql """
+    *|*|_|
+    *|*|_|
+    _|_|_|
+    """
+  
+  it "can create a copy of itself with all living cells within a rectangular area removed", ->
+    a = new Pattern """
+    *|*|*|
+    *|*|*|
+    *|*|*|
+    """
+    expect(a.cut(left:0,top:0,right:2, bottom:2).asciiArt(right:3,bottom:3)).to.eql """
+    _|_|*|
+    _|_|*|
+    *|*|*|
+    """
