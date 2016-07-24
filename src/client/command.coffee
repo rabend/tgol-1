@@ -8,7 +8,7 @@ module.exports = factory ->
     img 
       className: "command" 
       key:name 
-      src:"/images/#{icon}"
+      src:"images/#{icon}"
       onClick: (ev)->
         action.call(this,ev) 
         bus(name).push ev

@@ -53,5 +53,26 @@
     "react-dom": "^15.2.1",
     "readdirp": "^2.1.0",
     "rimraf": "^2.5.3"
-  }
+  },
+  "bundleDependencies": [
+    "baconjs",
+    "bluebird",
+    "browserify-middleware",
+    "bulk-require",
+    "coffeeify",
+    "d3-brush",
+    "d3-selection",
+    "d3-zoom",
+    "deepmerge",
+    "document-ready",
+    "express",
+    "js-yaml",
+    "mkdirp",
+    "qr-image",
+    "react",
+    "react-coffee-elements",
+    "react-dom",
+    "readdirp",
+    "rimraf"
+  ]
 }

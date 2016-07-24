@@ -8,7 +8,7 @@ d3Brush = require "d3-brush"
 fit = require "./fit-viewport"
 
 debugPoint = (canvas,points,stroke="red")->
-  marker = canvas.selectAll "g.debug"
+  marker = canvas.selectAll "g.debug.#{stroke}"
     .data points
   marker.exit().remove()
   newMarker = marker
@@ -16,6 +16,7 @@ debugPoint = (canvas,points,stroke="red")->
     .append "g"
     .style "stroke", stroke
     .classed "debug", true
+    .classed stroke, true
   newMarker
     .append "circle"
     .attr "cx",0
@@ -39,7 +40,6 @@ class Visualiztation extends React.Component
 
     @state =
       selection:null
-      zoomTransform:d3Zoom.zoomIdentity
 
     super props
     zoom = d3Zoom.zoom()
@@ -181,7 +181,6 @@ class Visualiztation extends React.Component
         #[zoomEvents], set "zoomTransform"
         [brushEvents], set "selection"
         [resizeEvents], set "size"
-        [bus("livingCells")], set "livingCells"
       ).onValue (v)=> @setState v
 
 
@@ -250,7 +249,7 @@ class Visualiztation extends React.Component
         .append "g"
         .attr "class", "brush"
         .call brush
-        .call brush.move, => selection?.map (p,i)=>zoomTransform.apply(p.map (c)->c+i)
+        .call brush.move, => selection?.map (p,i)=>zoomTransform.apply(p.map (c)->c)
       # remove the widget if it is not used any more
       selectionUi.exit()
         .remove()
@@ -258,6 +257,7 @@ class Visualiztation extends React.Component
       {top:vt,left:vl,bottom:vb,right:vr}= @viewport()
       {top:wt,left:wl,bottom:wb,right:wr}= @props.window
       debugPoint canvas, [[wl,wt],[wr,wb]], "yellow"
+      debugPoint canvas, selection, "green"
   @defaultProps:
     mode:"edit"
     # these are world coordinates, but not necessarily integers.
