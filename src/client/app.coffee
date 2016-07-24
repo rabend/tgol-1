@@ -55,15 +55,13 @@ class App extends React.Component
       edit:[play,select, fit ]
       select:[copy, back]
       pattern:[back]
-      play:[back]
+      play:[back, fit]
     )()
 
     @tick= =>
       if @state.mode == "play"
-        cells=@board()
-          .next()
-          .livingCells()
-        @setState({livingCells:cells},=>window.requestAnimationFrame(@tick))
+        b=@board().next()
+        @setState({livingCells:b.livingCells(), window:b.bbox()},=>window.requestAnimationFrame(@tick))
       
     @board= -> Board @livingCells()
     @topCommands= -> []

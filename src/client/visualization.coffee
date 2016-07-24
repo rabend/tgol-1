@@ -7,7 +7,7 @@ d3Brush = require "d3-brush"
 {div} = require "../react-utils"
 fit = require "./fit-viewport"
 
-debugPoint = (canvas,points,stroke="red")->
+debugPoint = (canvas,points=[],stroke="red")->
   marker = canvas.selectAll "g.debug.#{stroke}"
     .data points
   marker.exit().remove()
@@ -197,12 +197,17 @@ class Visualiztation extends React.Component
       {mode, livingCells} = @props
       zoomTransform = @transform()
       @mute "zoom.tgol"
-      svg.call(zoom.transform, zoomTransform)
-      @unmute "zoom.tgol"
-      # apply zoom transformation to canvas
-      canvas
+      svg
         #.transition()
-        #.duration 500
+        #.duration 500 
+        .call zoom.transform, zoomTransform 
+        #.on "end", => @unmute "zoom.tgol"
+      @unmute "zoom.tgol"
+
+      # apply zoom transformation to canvas
+      #target = if d3.event? then canvas else canvas.interrupt().transition().duration 500
+      target=canvas
+      target
         .attr "transform", zoomTransform
         .style "stroke-width", 1/zoomTransform.k + "px"
 
