@@ -6,35 +6,7 @@ d3Brush = require "d3-brush"
 
 {div} = require "../react-utils"
 fit = require "./fit-viewport"
-
-debugPoint = (canvas,points=[],stroke="red")->
-  marker = canvas.selectAll "g.debug.#{stroke}"
-    .data points
-  marker.exit().remove()
-  newMarker = marker
-    .enter()
-    .append "g"
-    .style "stroke", stroke
-    .classed "debug", true
-    .classed stroke, true
-  newMarker
-    .append "circle"
-    .attr "cx",0
-    .attr "cy",0
-    .attr "r", 1
-  newMarker.append "line"
-    .attr "x1",0-1
-    .attr "y1",0
-    .attr "x2",0+1
-    .attr "y2",0
-  newMarker.append "line"
-    .attr "x1",0
-    .attr "y1",0-1
-    .attr "x2",0
-    .attr "y2",0+1
-  newMarker
-    .merge marker
-    .attr "transform", (d)->"translate(#{d})"
+debugPoint = require "./debug-point"
 class Visualiztation extends React.Component
   constructor: (props)->
 
@@ -59,24 +31,6 @@ class Visualiztation extends React.Component
         -> sel.on "name",null
 
 
-    zoomToBox = (svg,box)->
-      {width, height} = svg.node().getBoundingClientRect()
-      extent =
-        left:box.left-1
-        top:box.top-1
-        right:box.right+1
-        bottom:box.bottom+1
-      viewport =
-        left:15
-        top:15
-        right:width-15
-        bottom:height-15
-      {scale:k, translate:[x,y]} = fit extent, viewport
-      t = d3Zoom.zoomIdentity.translate(x, y).scale(k)
-      svg
-        .transition()
-        .duration(500)
-        .call(zoom.transform,t)
 
 
     @viewport = ->
@@ -261,10 +215,9 @@ class Visualiztation extends React.Component
       selectionUi.exit()
         .remove()
 
-      {top:vt,left:vl,bottom:vb,right:vr}= @viewport()
       {top:wt,left:wl,bottom:wb,right:wr}= @props.window
-      debugPoint canvas, [[wl,wt],[wr,wb]], "yellow"
-      debugPoint canvas, selection, "green"
+      debugPoint canvas, [[wl,wt],[wr,wb]], "window"
+      debugPoint canvas, selection, "selection"
   @defaultProps:
     mode:"edit"
     # these are world coordinates, but not necessarily integers.
