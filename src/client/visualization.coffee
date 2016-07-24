@@ -21,13 +21,13 @@ class Visualiztation extends React.Component
       generalTouchEnabled = 'ontouchstart' of document.createElement('div')
       msTouchEnabled or generalTouchEnabled
 
-    muted = {}
-    @mute = (name)->muted[name]=true
-    @unmute = (name)->delete muted[name]
+    muted = false
+    @mute = ->muted=true
+    @unmute = ->muted=false
     eventStream = (sel, name)->
       Bacon.fromBinder (sink)->
         sel.on name, (d,i,group) ->
-          sink d3.event if not muted[name]
+          sink d3.event if not muted
         -> sel.on "name",null
 
 
@@ -65,6 +65,7 @@ class Visualiztation extends React.Component
         .classed "canvas", true
 
       zoomEvents = eventStream zoom, "zoom.tgol"
+        .filter =>@props.mode == "edit"
         .map (ev)=>
           t=ev.transform
           {top,left,bottom,right} = @viewport()
@@ -87,7 +88,10 @@ class Visualiztation extends React.Component
         ev.selection?.map (p,i)->t.invert( p).map (c)->Math.round(c)
 
       brushEvents = eventStream brush, "brush.tgol"
+        .filter =>@props.mode == "select"
         .map unprojectSelectionEvent
+        #.skipDuplicates (a,b)->
+          #a? and b? and a.toString() == b.toString()
 
       brushDoneEvents = tapEvents(
         eventStream brush, "start.tgol"
@@ -114,11 +118,13 @@ class Visualiztation extends React.Component
           .map (ev)->
             {top,left}=svg.node().getBoundingClientRect()
             [ev.clientX-left,ev.clientY-top]
-      toggleEvents = toggleEvents.map (p)=>
-        @transform().invert(p).map Math.floor
+      toggleEvents = toggleEvents
+        .filter =>@props.mode == "edit"
+        .map (p)=>@transform().invert(p).map Math.floor
 
       bus("toggle").plug toggleEvents
       bus("zoom").plug zoomEvents
+      bus("selection").plug brushEvents
       bus("selectionDone").plug brushDoneEvents
 
       set = (property)->(obj0,value)->
@@ -133,7 +139,7 @@ class Visualiztation extends React.Component
       Bacon.update(
         @state,
         #[zoomEvents], set "zoomTransform"
-        [brushEvents], set "selection"
+        #[brushEvents], set "selection"
         [resizeEvents], set "size"
       ).onValue (v)=> @setState v
 
@@ -147,16 +153,13 @@ class Visualiztation extends React.Component
       svg = d3.select(root).select("svg")
       canvas = svg.select("g.canvas")
 
-      {selection} = @state
-      {mode, livingCells} = @props
+      {mode, livingCells,selection} = @props
       zoomTransform = @transform()
-      @mute "zoom.tgol"
       svg
         #.transition()
-        #.duration 500 
-        .call zoom.transform, zoomTransform 
+        #.duration 500
+        .call zoom.transform, zoomTransform
         #.on "end", => @unmute "zoom.tgol"
-      @unmute "zoom.tgol"
 
       # apply zoom transformation to canvas
       #target = if d3.event? then canvas else canvas.interrupt().transition().duration 500
@@ -179,7 +182,7 @@ class Visualiztation extends React.Component
         .classed "cell", true
         .attr "transform", (d)->
           "translate(#{d})"
-      newCells  
+      newCells
         .append "rect"
         .attr "x",0.025
         .attr "y",0.025
@@ -205,12 +208,21 @@ class Visualiztation extends React.Component
         .selectAll "g.brush"
         .data [1].filter ->mode=="select"
 
+      transformedSelection = selection?.map (p)->zoomTransform.apply p
       # create a new selection widget if needed
-      selectionUi.enter()
+      newSelectionUi = selectionUi.enter()
         .append "g"
         .attr "class", "brush"
         .call brush
-        .call brush.move, => selection?.map (p,i)=>zoomTransform.apply(p.map (c)->c)
+      # update the selection widget to represent the actual selection state
+      if transformedSelection?
+        newSelectionUi
+          .call brush.move, transformedSelection.slice() 
+        #FIXME: in principle, we want to update the brush widget here, too
+        #  it does not work for some reason I haven't yet figured out.
+        #selectionUi.call brush.move, transformedSelection.slice()
+
+
       # remove the widget if it is not used any more
       selectionUi.exit()
         .remove()
@@ -235,6 +247,7 @@ class Visualiztation extends React.Component
       bottom:15
       right:15
     livingCells:[]
+    selection:null
 
   getDOMNode:->
     require("react-dom").findDOMNode this
@@ -244,7 +257,9 @@ class Visualiztation extends React.Component
   componentDidMount: ->
     @create()
   componentDidUpdate: ->
+    @mute()
     @update()
+    @unmute()
   componentWillUnmount: ->
     @destroy()
 

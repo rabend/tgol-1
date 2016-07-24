@@ -22,6 +22,8 @@ class App extends React.Component
         left:0
         bottom:10
         right:10
+      selection:null
+      pattern:null
     @bus = Dispatcher()
 
 
@@ -47,11 +49,13 @@ class App extends React.Component
         name: "select",
         icon: "view-zoom-fit-symbolic.svg"
         action: (ev)=>
-          @setState mode:"select"
+          @setState {mode:"select"}
       copy=
         name: "copy"
         icon: "copy.svg"
-        action: => @setState mode: "pattern"
+        action: => 
+
+          @setState mode: "pattern"
       edit:[play,select, fit ]
       select:[copy, back]
       pattern:[back]
@@ -62,14 +66,13 @@ class App extends React.Component
       if @state.mode == "play"
         b=@board().next()
         @setState({livingCells:b.livingCells(), window:b.bbox()},=>window.requestAnimationFrame(@tick))
-      
+
     @board= -> Board @livingCells()
     @topCommands= -> []
     @bottomCommands= ->commands[@state.mode] ? []
     @bus("selectionDone").onValue =>
       @setState mode:"edit"
     @bus("toggle").onValue ([x,y]) =>
-      console.log "toggle",x,y
       @setState
         livingCells:
           @board()
@@ -77,6 +80,8 @@ class App extends React.Component
             .livingCells()
     @bus("zoom").onValue (window)=>
       @setState window:window
+    @bus("selection").onValue (selection)=>
+      @setState selection:selection
   livingCells: ->
     @state.livingCells
   render: ->
@@ -85,7 +90,12 @@ class App extends React.Component
         (Panel bus:@bus, commands: @topCommands())
       )
       (div id:"main-area", className:"main",
-        (Visualization bus:@bus, livingCells:@livingCells(), mode:@state.mode, window:@state.window)
+        Visualization
+          bus:@bus
+          livingCells:@livingCells()
+          mode:@state.mode
+          window:@state.window
+          selection:@state.selection
       )
       (div id:"bottom-panel", className:"panel bottom",
         (Panel bus:@bus, commands: @bottomCommands())

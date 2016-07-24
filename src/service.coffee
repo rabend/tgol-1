@@ -30,7 +30,7 @@ module.exports = (CGOL_HOME, settings)->
   ]
   service.get '/js/vendor.js', browserify shared,
     debug:false
-    minify:true
+    minify:false
   service.get '/js/client.js', browserify entry, external:shared
 
 
