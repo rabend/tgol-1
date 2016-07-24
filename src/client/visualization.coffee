@@ -3,10 +3,12 @@ React = require "react"
 d3 = require "d3-selection"
 d3Zoom = require "d3-zoom"
 d3Brush = require "d3-brush"
+d3Drag = require "d3-drag"
 
 {div} = require "../react-utils"
 fit = require "./fit-viewport"
 debugPoint = require "./debug-point"
+renderCells = require "./render-cells"
 class Visualiztation extends React.Component
   constructor: (props)->
 
@@ -15,6 +17,7 @@ class Visualiztation extends React.Component
 
     super props
     zoom = d3Zoom.zoom()
+    drag = d3Drag.drag()
     brush = d3Brush.brush()
     touchSupported = ->
       msTouchEnabled = window.navigator.msMaxTouchPoints
@@ -63,9 +66,11 @@ class Visualiztation extends React.Component
         .style "stroke-width", 15
       canvas = svg.append "g"
         .classed "canvas", true
+      patternLayer = svg.append "g"
+        .classed "pattern", true
 
       zoomEvents = eventStream zoom, "zoom.tgol"
-        .filter =>@props.mode == "edit"
+        .filter =>@props.mode == "edit" or @props.mode == "pattern"
         .map (ev)=>
           t=ev.transform
           {top,left,bottom,right} = @viewport()
@@ -74,7 +79,26 @@ class Visualiztation extends React.Component
           [worldWindow.right,worldWindow.bottom] = t.invert [right,bottom]
           worldWindow
 
+      dragTransform = (ev)=>
+        console.log ev.type, ev.subject.x, ev.subject.y, ev.x,ev.y
+        t=@transform()
+        {x:x0,y:y0}=ev.subject
+        {x,y}=ev
+        [x0,y0] = t.invert([x0,y0]).map Math.floor
+        [x,y] = t.invert( [x,y]).map Math.floor
+        [x-x0,y-y0]
 
+      dropEvents = eventStream drag, "end.tgol"
+        .filter => @props.mode == "pattern"
+        .map dragTransform
+
+      dragEvents = eventStream drag, "drag.tgol"
+        .filter => @props.mode == "pattern"
+        .map dragTransform
+        .skipDuplicates (a,b)->not a? and not b? or a? and b? and a.toString() == b.toString()
+      
+      
+      
 
       tapEvents = (start, move, end)->
         #a property that is true when start is followed by move
@@ -124,6 +148,8 @@ class Visualiztation extends React.Component
 
       bus("toggle").plug toggleEvents
       bus("zoom").plug zoomEvents
+      bus("drag").plug dragEvents
+      bus("drop").plug dropEvents
       bus("selection").plug brushEvents
       bus("selectionDone").plug brushDoneEvents
 
@@ -147,57 +173,24 @@ class Visualiztation extends React.Component
       {width,height} = svg.node().getBoundingClientRect()
       @setState size: [width,height]
       svg.call zoom
+      patternLayer.call drag
 
     @update = ->
       root = @getDOMNode()
       svg = d3.select(root).select("svg")
       canvas = svg.select("g.canvas")
+      patternLayer = svg.select("g.pattern")
 
-      {mode, livingCells,selection} = @props
+      {mode, livingCells,selection, pattern,translate} = @props
       zoomTransform = @transform()
       svg
         #.transition()
         #.duration 500
         .call zoom.transform, zoomTransform
         #.on "end", => @unmute "zoom.tgol"
-
-      # apply zoom transformation to canvas
-      #target = if d3.event? then canvas else canvas.interrupt().transition().duration 500
-      target=canvas
-      target
-        .attr "transform", zoomTransform
-        .style "stroke-width", 1/zoomTransform.k + "px"
-
-      # bind living cells
-      cells = canvas
-        .selectAll "g.cell"
-        .data livingCells, (d)->d.toString()
-
-      # remove dead cells
-      cells.exit().remove()
-
-      # add new born cells
-      newCells = cells.enter()
-        .append "g"
-        .classed "cell", true
-        .attr "transform", (d)->
-          "translate(#{d})"
-      newCells
-        .append "rect"
-        .attr "x",0.025
-        .attr "y",0.025
-        .attr "width", 0.95
-        .attr "height", 0.95
-        .attr "rx", 0.05
-        .attr "ry", 0.05
-      # update selection state of cells
-      newCells
-        .merge cells
-        .classed "selected", (d)->
-          if selection?
-            [[left,top],[right,bottom]]=selection
-            [x,y] = d
-            left <= x < right and top <= y < bottom
+      renderCells canvas, livingCells, [zoomTransform], selection
+      [tx,ty]=translate
+      renderCells patternLayer, pattern ? [], [zoomTransform,d3Zoom.zoomIdentity.translate(tx,ty)], null
 
       # manage the selection brush:
       #

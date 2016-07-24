@@ -4,6 +4,7 @@ Visualization = require "./visualization"
 Panel = require "./panel"
 Dispatcher = require "../dispatcher"
 Board = require "../board"
+Pattern = require "../pattern"
 class App extends React.Component
   constructor: (props)->
     super props
@@ -24,6 +25,7 @@ class App extends React.Component
         right:10
       selection:null
       pattern:null
+      translate: [0,0]
     @bus = Dispatcher()
 
 
@@ -38,7 +40,10 @@ class App extends React.Component
       back =
         name: "back"
         icon: "back.svg"
-        action: => @setState mode:"edit"
+        action: => @setState 
+          mode:"edit"
+          selection:null
+          pattern:null
       fit =
         name: "fit"
         icon: "fit.svg"
@@ -54,8 +59,17 @@ class App extends React.Component
         name: "copy"
         icon: "copy.svg"
         action: => 
+          [[l,t],[r,b]] = @state.selection
+          pattern = new Pattern @livingCells()
+            .clip left:l,top:t,right:r,bottom:b
+          console.log "selection:",@state.selection.toString()
+          console.log "pattern:\n#{pattern.asciiArt(left:0,top:0)}"
+          @setState 
+            mode: "pattern"
+            pattern: pattern.cells
+            translate: [0,0]
+            selection: null
 
-          @setState mode: "pattern"
       edit:[play,select, fit ]
       select:[copy, back]
       pattern:[back]
@@ -82,8 +96,22 @@ class App extends React.Component
       @setState window:window
     @bus("selection").onValue (selection)=>
       @setState selection:selection
+    @bus("drag").onValue (t)=>
+      console.log "drag", t
+      @setState translate:t
+    @bus("drop").onValue (t)=>
+      console.log "drop", t
+      @setState 
+        translate:[0,0]
+        pattern: @patternCells t
   livingCells: ->
     @state.livingCells
+  patternCells: (tl)->
+    if @state.pattern?
+      [dx,dy] = tl ? @state.translate
+      new Pattern @state.pattern
+        .translate dx,dy
+        .cells
   render: ->
     (div className:"layout",
       (div id:"top-panel", className:"panel top",
@@ -96,6 +124,8 @@ class App extends React.Component
           mode:@state.mode
           window:@state.window
           selection:@state.selection
+          pattern:@state.pattern
+          translate:@state.translate
       )
       (div id:"bottom-panel", className:"panel bottom",
         (Panel bus:@bus, commands: @bottomCommands())

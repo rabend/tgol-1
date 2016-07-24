@@ -212,14 +212,16 @@ describe "A Pattern", ->
     """
   it "can extract a rectangular subpattern of itself", ->
     a = new Pattern """
-    *|*|*|
-    *|*|*|
-    *|*|*|
+    _|_|_|_|
+    _|*|*|*|
+    _|*|_|_|
+    _|_|*|_|
     """
-    expect(a.clip(left:0,top:0,right:2, bottom:2).asciiArt(right:3,bottom:3)).to.eql """
-    *|*|_|
-    *|*|_|
-    _|_|_|
+    expect(a.clip(left:1,top:1,right:3, bottom:3).asciiArt(left:0,top:0,right:4,bottom:4)).to.eql """
+    _|_|_|_|
+    _|*|*|_|
+    _|*|_|_|
+    _|_|_|_|
     """
   
   it "can create a copy of itself with all living cells within a rectangular area removed", ->
