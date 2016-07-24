@@ -94,7 +94,13 @@ svg {
   fill:none;
   stroke: red;
 }
+.debug.window {
+  stroke: red;
+}
 
+.debug.selection {
+  stroke: yellow;
+}
 #qr-code {
   height:150px;
   position:absolute;

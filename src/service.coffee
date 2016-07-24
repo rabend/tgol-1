@@ -6,7 +6,7 @@ module.exports = (CGOL_HOME, settings)->
   path = require "path"
   repo = Repository CGOL_HOME, settings
 
-
+  packageJson = require "../package.json"
   service = Express()
 
   # client code
@@ -17,7 +17,21 @@ module.exports = (CGOL_HOME, settings)->
   #browserify.settings.development 'debug', false
   #browserify.settings.development 'minify', false
   entry = require.resolve "./client/index"
-  service.get '/js/client.js', browserify entry
+  shared = [
+    'deepmerge'
+    'baconjs'
+    'd3-brush'
+    'd3-selection'
+    'd3-zoom'
+    'document-ready'
+    'qr-image'
+    'react'
+    'react-dom'
+  ]
+  service.get '/js/vendor.js', browserify shared,
+    debug:false
+    minify:true
+  service.get '/js/client.js', browserify entry, external:shared
 
 
   # service root
