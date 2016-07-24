@@ -211,19 +211,16 @@ class Visualiztation extends React.Component
         .selectAll "g.cell"
         .data livingCells, (d)->d.toString()
 
-      # update selection state of cells
-      cells.classed "selected", (d)->
-        if selection?
-          [[left,top],[right,bottom]]=selection
-          [x,y] = d
-          left <= x < right and top <= y < bottom
+      # remove dead cells
+      cells.exit().remove()
 
       # add new born cells
-      cells.enter()
+      newCells = cells.enter()
         .append "g"
         .classed "cell", true
         .attr "transform", (d)->
           "translate(#{d})"
+      newCells  
         .append "rect"
         .attr "x",0.025
         .attr "y",0.025
@@ -231,9 +228,14 @@ class Visualiztation extends React.Component
         .attr "height", 0.95
         .attr "rx", 0.05
         .attr "ry", 0.05
-
-      # remove dead cells
-      cells.exit().remove()
+      # update selection state of cells
+      newCells
+        .merge cells
+        .classed "selected", (d)->
+          if selection?
+            [[left,top],[right,bottom]]=selection
+            [x,y] = d
+            left <= x < right and top <= y < bottom
 
       # manage the selection brush:
       #
