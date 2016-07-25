@@ -235,3 +235,21 @@ describe "A Pattern", ->
     _|_|*|
     *|*|*|
     """
+
+  it "can be 'added' to another pattern", ->
+    a = new Pattern """
+    _|_|_|
+    _|*|*|
+    _|*|*|
+    """
+    b = new Pattern """
+    *|*|_|
+    *|*|_|
+    _|_|_|
+    """
+    expect(a.union(b).asciiArt()).to.eql """
+    *|*|_|
+    *|*|*|
+    _|*|*|
+    """
+

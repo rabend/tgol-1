@@ -98,7 +98,7 @@ class Visualiztation extends React.Component
         .skipDuplicates (a,b)->not a? and not b? or a? and b? and a.toString() == b.toString()
       
       
-      
+            
 
       tapEvents = (start, move, end)->
         #a property that is true when start is followed by move
@@ -152,6 +152,7 @@ class Visualiztation extends React.Component
       bus("drop").plug dropEvents
       bus("selection").plug brushEvents
       bus("selectionDone").plug brushDoneEvents
+      bus("tap-pattern").plug eventStream patternLayer, "click"
 
       set = (property)->(obj0,value)->
 

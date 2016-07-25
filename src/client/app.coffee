@@ -31,61 +31,88 @@ class App extends React.Component
 
 
 
-    commands= (()=>
-      play =
-        name: "play"
-        icon: "play.svg"
-        action: =>
-          @setState {mode:"play"}, @tick
-      back =
-        name: "back"
-        icon: "back.svg"
-        action: => @setState 
-          mode:"edit"
-          selection:null
-          pattern:null
-      fit =
-        name: "fit"
-        icon: "fit.svg"
-        action: =>
-          @setState window: @board().bbox()
+    @play=
+      name: "play"
+      icon: "play.svg"
+      action: =>
+        @setState {mode:"play"}, @tick
+    @back=
+      name: "back"
+      icon: "back.svg"
+      action: => @setState 
+        mode:"edit"
+        selection:null
+        pattern:null
+    @fit=
+      name: "fit"
+      icon: "fit.svg"
+      action: =>
+        @setState window: @board().bbox()
 
-      select=
-        name: "select",
-        icon: "view-zoom-fit-symbolic.svg"
-        action: (ev)=>
-          @setState {mode:"select"}
-      copy=
-        name: "copy"
-        icon: "copy.svg"
-        action: => 
-          [[l,t],[r,b]] = @state.selection
-          pattern = new Pattern @livingCells()
-            .clip left:l,top:t,right:r,bottom:b
-          console.log "selection:",@state.selection.toString()
-          console.log "pattern:\n#{pattern.asciiArt(left:0,top:0)}"
-          @setState 
-            mode: "pattern"
-            pattern: pattern.cells
-            translate: [0,0]
-            selection: null
-
-      edit:[play,select, fit ]
-      select:[copy, back]
-      pattern:[back]
-      play:[back, fit]
-    )()
+    @select=
+      name: "select",
+      icon: "view-zoom-fit-symbolic.svg"
+      action: (ev)=>
+        @setState {mode:"select"}
+    @copy=
+      name: "copy"
+      icon: "copy.svg"
+      action: => 
+        [[l,t],[r,b]] = @state.selection
+        pattern = new Pattern @livingCells()
+          .clip left:l,top:t,right:r,bottom:b
+        @setState 
+          mode: "pattern"
+          pattern: pattern.cells
+          translate: [0,0]
+          selection: null
+    @cut=
+      name: "cut"
+      icon: "cut.svg"
+      action: => 
+        [[l,t],[r,b]] = @state.selection
+        box = {left:l,top:t,right:r,bottom:b}
+        pattern = new Pattern @livingCells()
+          .clip box
+        living = new Pattern @livingCells()
+          .cut box
+        @setState 
+          mode: "pattern"
+          pattern: pattern.cells
+          livingCells: living.cells
+          translate: [0,0]
+          selection: null
+    @paste=
+      name: "paste"
+      icon: "none"
+      action: =>
+        a = new Pattern @livingCells()
+        b = new Pattern @patternCells()
+        @setState
+          livingCells: a.union(b).cells
+    commands=
+      edit:[@play,@select, @fit ]
+      select:[@copy, @back]
+      pattern:[@back]
+      play:[@back, @fit]
+    
 
     @tick= =>
       if @state.mode == "play"
         b=@board().next()
-        @setState({livingCells:b.livingCells(), window:b.bbox()},=>window.requestAnimationFrame(@tick))
+        @setState
+          livingCells:b.livingCells()
+          window: if b.livingCells().length>0 then b.bbox()
+          ()=>window.requestAnimationFrame(@tick)
 
     @board= -> Board @livingCells()
     @topCommands= -> []
     @bottomCommands= ->commands[@state.mode] ? []
-    @bus("selectionDone").onValue =>
-      @setState mode:"edit"
+    @bus("selectionDone").onValue (ev)=>
+      if not ev?
+        @back.action()
+      else
+        @cut.action()
     @bus("toggle").onValue ([x,y]) =>
       @setState
         livingCells:
@@ -97,13 +124,13 @@ class App extends React.Component
     @bus("selection").onValue (selection)=>
       @setState selection:selection
     @bus("drag").onValue (t)=>
-      console.log "drag", t
       @setState translate:t
     @bus("drop").onValue (t)=>
-      console.log "drop", t
       @setState 
         translate:[0,0]
         pattern: @patternCells t
+    @bus("tap-pattern").onValue =>
+      @paste.action()
   livingCells: ->
     @state.livingCells
   patternCells: (tl)->

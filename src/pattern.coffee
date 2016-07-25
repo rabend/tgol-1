@@ -24,7 +24,7 @@ class Pattern
     switch
       when typeof input == "string" then @cells= parseString input
       when isArray input
-        if isArray input[0]
+        if input.length==0 or isArray input[0]
           @cells = input
         else if typeof input[0] == "number"
           @cells = input.map cantorDecode
@@ -102,5 +102,14 @@ class Pattern
     box = new BBox spec
     new Pattern @cells.filter (p)-> not box.includes p
 
+  union: (other)->
+    x=null
+    newCells = @cells.concat other.cells
+      .sort()
+      .filter (cell)-> 
+        if cell.toString() != x?.toString()
+          x = cell
+          return true
+    new Pattern newCells
 
 module.exports= Pattern

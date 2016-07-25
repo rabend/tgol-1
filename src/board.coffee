@@ -8,8 +8,9 @@ Board = (spec)->
 
 
   bbox = ()->
-    _bbox = new BBox _livingCells if not _bbox
-    _bbox.data()
+    if _livingCells.length>0
+      _bbox = new BBox _livingCells if not _bbox
+      _bbox.data()
   livingCells = ()->
     _livingCells.slice()
 
