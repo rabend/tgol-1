@@ -1,5 +1,9 @@
 isArray = require("util").isArray
 merge = require "deepmerge"
+Promise = require "bluebird"
+zlib = require "zlib"
+deflate = Promise.promisify zlib.deflate
+inflate = Promise.promisify zlib.inflate
 BBox = require "./bbox"
 parseString = (s)->
   cells = []
@@ -22,7 +26,7 @@ class Pattern
   constructor: (input, bbox)->
     throw new Error "you forgot to use 'new', doh!" if not (this instanceof Pattern)
     switch
-      when typeof input == "string" then @cells= parseString input
+      when typeof input == "string" and input[1] == '|' then @cells= parseString input
       when isArray input
         if input.length==0 or isArray input[0]
           @cells = input
@@ -48,6 +52,12 @@ class Pattern
             if @alive x,y then '*|' else '_|'
         ).join ''
     ).join '\n'
+
+  encode: ->
+    coords = Array::concat.apply [], @cells
+    buf = Buffer.from Uint8Array.from coords
+    deflate buf
+      .then (zbuf)->zbuf.toString "base64"
 
   bbox: ->@_bbox?=new BBox @cells
   translate: (dx,dy)->
@@ -111,5 +121,11 @@ class Pattern
           x = cell
           return true
     new Pattern newCells
+
+Pattern.decode = (s)->
+  inflate Buffer.from s, "base64"
+    .then (buf)->
+      flatCoords = Uint8Array.from buf
+      new Pattern ([flatCoords[2*i],flatCoords[2*i+1]] for i in [0...flatCoords.length/2])
 
 module.exports= Pattern

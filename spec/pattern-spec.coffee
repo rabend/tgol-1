@@ -49,6 +49,44 @@ describe "A Pattern", ->
     """
     expect(p.codes()).to.eql [1,5,7,8,12]
 
+
+  it "can mysteriously disappear in a base64 string", ->
+    p = new Pattern """
+    _|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|_|_|*|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|*|*|
+    _|_|_|_|_|_|_|_|*|_|*|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|*|*|*|_|_|_|_|_|*|*|
+    *|*|_|_|_|_|*|*|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|
+    *|*|_|_|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|*|*|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|*|*|_|_|*|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|*|_|*|_|_|_|_|_|*|*|*|*|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|
+    """
+    console.log p.asciiArt()
+    console.log p.bbox()
+    expect(p.encode()).to.be.fulfilled.then (s)->
+      console.log s
+      expect(Pattern.decode(s)).to.be.fulfilled.then (p)->
+        console.log p.asciiArt()
+        console.log p.bbox()
+        expect(p.encode()).to.be.fulfilled.then  (s)->
+          console.log s
+          expect(s).to.eql "eJwFwUsOABEUBEDep1tsMCMhzIr733GqRphhxBmzFFmy5ciVpFmLLt366dGrwaLBaMWWbQseHU5/vfvw6QBR0dAxMJGYWdn48GVOT/oByWoEEg==" 
+
+  it "can somehow be magically restored from a base64 string", ->
+    s= "eJwFwUsOABEUBEDep1tsMCMhzIr733GqRphhxBmzFFmy5ciVpFmLLt366dGrwaLBaMWWbQseHU5/vfvw6QBR0dAxMJGYWdn48GVOT/oByWoEEg=="
+    expect(Pattern.decode(s).then (p)->p.asciiArt()).to.eventually.eql """
+    _|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|_|_|*|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|*|*|
+    _|_|_|_|_|_|_|_|*|_|*|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|*|*|*|_|_|_|_|_|*|*|
+    *|*|_|_|_|_|*|*|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|
+    *|*|_|_|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|*|*|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|*|*|_|_|*|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|*|_|*|_|_|_|_|_|*|*|*|*|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|
+    """
+
   it "can produce a transposed copy of itself", ->
     p = new Pattern """
      _|*|_|
@@ -223,7 +261,7 @@ describe "A Pattern", ->
     _|*|_|_|
     _|_|_|_|
     """
-  
+
   it "can create a copy of itself with all living cells within a rectangular area removed", ->
     a = new Pattern """
     *|*|*|
