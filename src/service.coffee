@@ -27,10 +27,13 @@ module.exports = (CGOL_HOME, settings)->
     'qr-image'
     'react'
     'react-dom'
+    'react-router'
+    'kbpgp'
+    'bluebird'
   ]
   service.get '/js/vendor.js', browserify shared,
     debug:false
-    minify:false
+    minify:true
   service.get '/js/client.js', browserify entry, external:shared
 
 
