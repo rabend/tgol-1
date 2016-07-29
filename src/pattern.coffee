@@ -123,7 +123,8 @@ class Pattern
     new Pattern newCells
 
 Pattern.decode = (s)->
-  inflate Buffer.from s, "base64"
+  buf = new Buffer s, "base64"
+  inflate buf
     .then (buf)->
       flatCoords = Uint8Array.from buf
       new Pattern ([flatCoords[2*i],flatCoords[2*i+1]] for i in [0...flatCoords.length/2])

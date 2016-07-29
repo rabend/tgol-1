@@ -69,6 +69,39 @@ class Visualiztation extends React.Component
       patternLayer = svg.append "g"
         .classed "pattern", true
 
+      if bus?
+        @wireGestures bus
+
+      set = (property)->(obj0,value)->
+
+        obj = {}
+        obj[k]=v for k,v of obj0
+        obj[property]=value
+        obj
+
+      identity = (obj)->obj
+      resizeEvents = eventStream d3.select(window), "resize"
+        .map ()->
+          {width, height} = svg.node().getBoundingClientRect()
+          [width,height]
+
+      Bacon.update(
+        @state,
+        #[zoomEvents], set "zoomTransform"
+        #[brushEvents], set "selection"
+        [resizeEvents], set "size"
+      ).onValue (v)=> @setState v
+
+
+      {width,height} = svg.node().getBoundingClientRect()
+      @setState size: [width,height]
+      svg.call zoom
+      patternLayer.call drag
+
+    @wireGestures = (bus)->
+      root = @getDOMNode()
+      svg = d3.select(root).select("svg")
+      patternLayer = svg.select("g.pattern")
       zoomEvents = eventStream zoom, "zoom.tgol"
         .filter =>@props.mode == "edit" or @props.mode == "pattern"
         .map (ev)=>
@@ -80,7 +113,6 @@ class Visualiztation extends React.Component
           worldWindow
 
       dragTransform = (ev)=>
-        console.log ev.type, ev.subject.x, ev.subject.y, ev.x,ev.y
         t=@transform()
         {x:x0,y:y0}=ev.subject
         {x,y}=ev
@@ -123,10 +155,6 @@ class Visualiztation extends React.Component
         eventStream brush, "end.tgol"
       ).map unprojectSelectionEvent
 
-      resizeEvents = eventStream d3.select(window), "resize"
-        .map ()->
-          {width, height} = svg.node().getBoundingClientRect()
-          [width,height]
       toggleEvents = undefined
       if touchSupported()
         touchStart = eventStream svg, "touchstart.tgol"
@@ -153,28 +181,6 @@ class Visualiztation extends React.Component
       bus("selection").plug brushEvents
       bus("selectionDone").plug brushDoneEvents
       bus("tap-pattern").plug eventStream patternLayer, "click"
-
-      set = (property)->(obj0,value)->
-
-        obj = {}
-        obj[k]=v for k,v of obj0
-        obj[property]=value
-        obj
-
-      identity = (obj)->obj
-
-      Bacon.update(
-        @state,
-        #[zoomEvents], set "zoomTransform"
-        #[brushEvents], set "selection"
-        [resizeEvents], set "size"
-      ).onValue (v)=> @setState v
-
-
-      {width,height} = svg.node().getBoundingClientRect()
-      @setState size: [width,height]
-      svg.call zoom
-      patternLayer.call drag
 
     @update = ->
       root = @getDOMNode()
@@ -242,6 +248,7 @@ class Visualiztation extends React.Component
       right:15
     livingCells:[]
     selection:null
+    translate:[0,0]
 
   getDOMNode:->
     require("react-dom").findDOMNode this
@@ -257,4 +264,4 @@ class Visualiztation extends React.Component
   componentWillUnmount: ->
     @destroy()
 
-module.exports = React.createFactory Visualiztation
+module.exports = Visualiztation

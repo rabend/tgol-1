@@ -1,7 +1,7 @@
 
 {factory,img} = require "../react-utils"
-
-module.exports = factory ->
+React = require "react"
+module.exports = class Command extends React.Component
   render: ->
     {name,icon,action} = @props.command
     bus = @props.bus

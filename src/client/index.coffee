@@ -1,15 +1,29 @@
-{render,factory} = require "../react-utils"
+{render,factory, div} = require "../react-utils"
+Editor = require "./editor"
 App = require "./app"
+PatternDetail = require "./pattern-detail"
 ready = require "document-ready"
 {Router, Route, browserHistory} = require "react-router"
-{createFactory} = require "react"
-Router =createFactory Router
-Route = createFactory Route
+React = require "react"
+{createFactory, createElement} = require "react"
+#Router =createFactory Router
+#Route = createFactory Route
 ready ->
+  routes= [
+    path:"/"
+    component:App
+    indexRoute: onEnter: (nextState, replace) => replace '/editor'
+    childRoutes: [
+      path:"editor"
+      component: Editor
+    ,
+      path:"patterns/:spec"
+      component: PatternDetail
+    ]
+  ]
   render(
-    Router(
+    createElement Router,
       history:browserHistory
-      Route path:"/", component: App
-    )
+      routes: routes
     document.getElementById "app-root"
   )

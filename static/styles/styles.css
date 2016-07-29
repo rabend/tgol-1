@@ -17,7 +17,7 @@ body * {
   font-family: "Lucida Grande", helvetica, sans-serif;
 }
 
-input, textarea, select {
+input, textarea, select,button {
   border: none;
   padding: 0.5em;
   font-size: 15px;

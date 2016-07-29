@@ -46,4 +46,9 @@ module.exports = (CGOL_HOME, settings)->
   # static assets
   service.use Express.static('static')
   
+  # for everything else, just return index.html
+  # so client-side routing works smoothly
+  service.get '*',  (request, response)->
+    response.sendFile path.resolve __dirname, '..', 'static', 'index.html'
+
   service

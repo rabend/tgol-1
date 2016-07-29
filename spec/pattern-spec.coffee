@@ -62,15 +62,9 @@ describe "A Pattern", ->
     _|_|_|_|_|_|_|_|*|_|*|_|_|_|_|_|*|*|*|*|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|
     _|_|_|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|
     """
-    console.log p.asciiArt()
-    console.log p.bbox()
     expect(p.encode()).to.be.fulfilled.then (s)->
-      console.log s
       expect(Pattern.decode(s)).to.be.fulfilled.then (p)->
-        console.log p.asciiArt()
-        console.log p.bbox()
         expect(p.encode()).to.be.fulfilled.then  (s)->
-          console.log s
           expect(s).to.eql "eJwFwUsOABEUBEDep1tsMCMhzIr733GqRphhxBmzFFmy5ciVpFmLLt366dGrwaLBaMWWbQseHU5/vfvw6QBR0dAxMJGYWdn48GVOT/oByWoEEg==" 
 
   it "can somehow be magically restored from a base64 string", ->

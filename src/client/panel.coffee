@@ -1,8 +1,9 @@
 
 {div,factory,img} = require "../react-utils"
-Command = require "./command"
+Command = factory require "./command"
+React = require "react"
 
-module.exports = factory ->
+module.exports = class Panel extends React.Component
   render: ->
     (div className:"commands",
       (Command key:command.name, command:command, bus:@props.bus) for command in @props.commands

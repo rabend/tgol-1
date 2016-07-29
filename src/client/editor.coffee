@@ -1,0 +1,169 @@
+{div,factory} = require "../react-utils"
+React = require "react"
+Visualization = factory require "./visualization"
+Panel = factory require "./panel"
+Dispatcher = require "../dispatcher"
+Board = require "../board"
+Pattern = require "../pattern"
+class Editor extends React.Component
+  constructor: (props)->
+    super props
+    board = Board  """
+    _|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|_|_|*|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|*|*|
+    _|_|_|_|_|_|_|_|*|_|*|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|*|*|*|_|_|_|_|_|*|*|
+    *|*|_|_|_|_|*|*|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|
+    *|*|_|_|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|*|*|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|*|*|_|_|_|_|_|_|_|_|*|*|_|_|*|_|_|*|*|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|*|_|*|_|_|_|_|_|*|*|*|*|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|
+    _|_|_|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|*|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|_|
+    """
+    @state=
+      livingCells: board.livingCells()
+      mode:"edit"
+      window:
+        top:0
+        left:0
+        bottom:10
+        right:10
+      selection:null
+      pattern:null
+      translate: [0,0]
+      lru:[]
+    @bus = Dispatcher()
+
+
+
+
+    @play=
+      name: "play"
+      icon: "play.svg"
+      action: =>
+        @setState {mode:"play"}, @tick
+    @back=
+      name: "back"
+      icon: "back.svg"
+      action: => @setState 
+        mode:"edit"
+        selection:null
+        pattern:null
+    @fit=
+      name: "fit"
+      icon: "fit.svg"
+      action: =>
+        @setState window: @board().bbox()
+
+    @select=
+      name: "select",
+      icon: "view-zoom-fit-symbolic.svg"
+      action: (ev)=>
+        @setState {mode:"select"}
+    @copy=
+      name: "copy"
+      icon: "copy.svg"
+      action: => 
+        [[l,t],[r,b]] = @state.selection
+        pattern = new Pattern @livingCells()
+          .clip left:l,top:t,right:r,bottom:b
+        @setState 
+          mode: "pattern"
+          pattern: pattern.cells
+          translate: [0,0]
+          selection: null
+    @cut=
+      name: "cut"
+      icon: "cut.svg"
+      action: => 
+        [[l,t],[r,b]] = @state.selection
+        box = {left:l,top:t,right:r,bottom:b}
+        pattern = new Pattern @livingCells()
+          .clip box
+        living = new Pattern @livingCells()
+          .cut box
+        @setState 
+          mode: "pattern"
+          pattern: pattern.cells
+          livingCells: living.cells
+          translate: [0,0]
+          selection: null
+    @paste=
+      name: "paste"
+      icon: "none"
+      action: =>
+        a = new Pattern @livingCells()
+        b = new Pattern @patternCells()
+        @setState
+          livingCells: a.union(b).cells
+    commands=
+      edit:[@play,@select, @fit ]
+      select:[@copy, @back]
+      pattern:[@back]
+      play:[@back, @fit]
+    
+
+    @tick= =>
+      if @state.mode == "play"
+        b=@board().next()
+        @setState
+          livingCells:b.livingCells()
+          window: if b.livingCells().length>0 then b.bbox()
+          ()=>window.requestAnimationFrame(@tick)
+
+    @board= -> Board @livingCells()
+    @topCommands= -> []
+    @bottomCommands= ->commands[@state.mode] ? []
+    @bus("selectionDone").onValue (ev)=>
+      if not ev?
+        @back.action()
+      else
+        @cut.action()
+    @bus("toggle").onValue ([x,y]) =>
+      @setState
+        livingCells:
+          @board()
+            .toggle x,y
+            .livingCells()
+    @bus("zoom").onValue (window)=>
+      @setState window:window
+    @bus("selection").onValue (selection)=>
+      @setState selection:selection
+    @bus("drag").onValue (t)=>
+      @setState translate:t
+    @bus("drop").onValue (t)=>
+      @setState 
+        translate:[0,0]
+        pattern: @patternCells t
+    @bus("tap-pattern").onValue =>
+      @paste.action()
+  livingCells: ->
+    @state.livingCells
+  patternCells: (tl)->
+    if @state.pattern?
+      [dx,dy] = tl ? @state.translate
+      new Pattern @state.pattern
+        .translate dx,dy
+        .cells
+  componentDidMount: ->
+    console.log @props.children
+  render: ->
+    (div className:"layout",
+      (div id:"top-panel", className:"panel top",
+        (Panel bus:@bus, commands: @topCommands())
+      )
+      (div id:"main-area", className:"main",
+        Visualization
+          bus:@bus
+          livingCells:@livingCells()
+          mode:@state.mode
+          window:@state.window
+          selection:@state.selection
+          pattern:@state.pattern
+          translate:@state.translate
+      )
+      (div id:"bottom-panel", className:"panel bottom",
+        (Panel bus:@bus, commands: @bottomCommands())
+      )
+    )
+
+module.exports = Editor
