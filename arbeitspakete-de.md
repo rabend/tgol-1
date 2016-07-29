@@ -92,6 +92,9 @@ ohnehin all diese Infos benötigt werden.
 Die Matches sollten andererseits aus Platzgründen die Muster nicht über den base64-Code referenzieren, sondern
 über deren position in dem patterns-Array. (spezifisch für diese eine Response)
 
+Darstellung im Client
+---------------------
+
 UC4 Leader Board
 Das ist quasi das Client-seitige Gegenstück zu UC4.
 
