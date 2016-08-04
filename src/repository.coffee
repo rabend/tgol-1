@@ -8,7 +8,6 @@ module.exports = (CGOL_HOME, settings)->
   writeFile = Promise.promisify fs.writeFile
   readFile = Promise.promisify fs.readFile
   dump = require("js-yaml").dump
-  loadYaml = require "load-yaml"
 
   savePattern = (pdoc)->
     tdir = path.join CGOL_HOME,pdoc.tournament
@@ -48,13 +47,13 @@ module.exports = (CGOL_HOME, settings)->
           .map (entry)->"/"+entry.name
           .sort()
 
-  getTwoPatternsForELO = (elo, tournamentName)->
-    tdir = path.join CGOL_HOME, tournamentName
-    pdir = path.join tdir, 'patterns'
-    allPatterns = readdir root:pdir, depth:0, entryType:'files'
-      .then(entries)->
-        entries.files
-          .map(file)->loadYaml(file)
+  # getTwoPatternsForELO = (elo, tournamentName)->
+  #   tdir = path.join CGOL_HOME, tournamentName
+  #   pdir = path.join tdir, 'patterns'
+  #   allPatterns = readdir root:pdir, depth:0, entryType:'files'
+  #     .then(entries)->
+  #       entries.files
+  #         .map(file)->loadYaml(file)
     #TODO: pass array of patterns to matchmaker and receive patterns[2] back, then return to caller
 
 
