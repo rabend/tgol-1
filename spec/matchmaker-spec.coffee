@@ -15,6 +15,8 @@ describe "The Matchmaker", ->
         elo:900}
         {mail:"800@test.com"
         elo:800}
+        {mail:"900b@test.com"
+        elo:900}
       ]
 
   it "can select two equally strong patterns from an array", ->
@@ -22,4 +24,3 @@ describe "The Matchmaker", ->
     eloToMatch = matchedPatterns[1].elo
     expect(matchedPatterns[0].elo).to.be.within(eloToMatch-100, eloToMatch+100)
     expect(matchedPatterns[0].mail).to.not.eql(matchedPatterns[1].mail)
-    
