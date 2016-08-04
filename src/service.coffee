@@ -48,7 +48,23 @@ module.exports = (CGOL_HOME, settings)->
             tournaments: tnames
   # static assets
   service.use Express.static('static')
-  
+
+  service.get '/api/leaderboard', (req, res)->
+    res.json
+      data: [
+        {name: 'Roman'
+        games: 3
+        score: 234
+        mail: 'romanabendroth@t-online.de'}
+        {name: 'Jade'
+        games: 4
+        score: 456
+        mail: 'jade.teodoro@gmail.com'}
+      ]
+
+  service.get '/leaderboard', (req, res) ->
+    res.sendFile path.resolve __dirname, '..', 'static', 'leaderboard.html'
+
   # for everything else, just return index.html
   # so client-side routing works smoothly
   service.get '*',  (request, response)->

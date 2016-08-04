@@ -57,3 +57,6 @@ describe "The Repository",->
       mkdir path.join CGOL_HOME,"t3"
     ]).to.be.fulfilled.then ->
       expect(repository.allTournaments()).to.eventually.eql ['/t1','/t2','/t3']
+
+  it "can get two patterns with a fair ELO rating", ->
+    
