@@ -62,7 +62,7 @@ module.exports = (CGOL_HOME, settings)->
         mail: 'jade.teodoro@gmail.com'}
       ]
 
-  service.get '/leaderboard', (req, res) ->
+  service.get '/kiosk/leaderboard', (req, res) ->
     res.sendFile path.resolve __dirname, '..', 'static', 'leaderboard.html'
 
   # for everything else, just return index.html

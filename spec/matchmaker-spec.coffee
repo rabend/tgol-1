@@ -24,3 +24,4 @@ describe "The Matchmaker", ->
     eloToMatch = matchedPatterns[1].elo
     expect(matchedPatterns[0].elo).to.be.within(eloToMatch-100, eloToMatch+100)
     expect(matchedPatterns[0].mail).to.not.eql(matchedPatterns[1].mail)
+    expect(matchedPatterns.length).to.eql(2)

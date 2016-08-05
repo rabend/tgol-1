@@ -9,11 +9,21 @@ module.exports = (CGOL_HOME, settings)->
   readFile = Promise.promisify fs.readFile
   dump = require("js-yaml").dump
 
-  savePattern = (pdoc)->
-    tdir = path.join CGOL_HOME,pdoc.tournament
+  savePattern = (pdoc, tournamentName)->
+    tdir = path.join CGOL_HOME, tournamentName
     pdir = path.join tdir, 'patterns'
-    pfile = path.join pdir, pdoc.name+".yaml"
-    writeFile pfile, dump pdoc
+    pfile = path.join pdir, pdoc.mail+".yaml"
+    isMailAlreadyInUse(pdoc.mail).then (val)->
+      if val
+        throw new Error('Mail already in use!')
+      else
+        writeFile pfile, dump 
+          name:pdoc.name
+          author:pdoc.author
+          mail:pdoc.mail
+          elo:pdoc.elo
+          base64String:pdoc.base64String
+          pin:pdoc.pin
     
   saveMatch = (mdoc)->
     tdir = path.join CGOL_HOME,mdoc.tournament
@@ -35,7 +45,7 @@ module.exports = (CGOL_HOME, settings)->
         name:tdoc.name
         pin: tdoc.pin
       .then ->
-        Promise.all (savePattern pattern for pattern in tdoc.patterns)
+        Promise.all (savePattern pattern,tdoc.name for pattern in tdoc.patterns)
       .then ->
         Promise.all (saveMatch match for match in tdoc.matches)
 
@@ -46,6 +56,16 @@ module.exports = (CGOL_HOME, settings)->
         entries.directories
           .map (entry)->"/"+entry.name
           .sort()
+  
+  
+  isMailAlreadyInUse = (mail)->
+    readdir root:CGOL_HOME, entryType: 'files'
+    .then (entryStream)->
+      files = entryStream.files
+        .map (entry)->entry.name
+      mail+'.yaml' in files
+
 
   allTournaments: allTournaments
   saveTournament: saveTournament
+  savePattern: savePattern

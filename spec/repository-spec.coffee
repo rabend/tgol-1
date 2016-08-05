@@ -47,7 +47,7 @@ describe "The Repository",->
         name:tdoc.name
         pin:tdoc.pin
 
-      expect(loadYaml path.join patterndir, pdoc.name+".yaml").to.eql pdoc for pdoc in tdoc.patterns
+      expect(loadYaml path.join patterndir, pdoc.mail+".yaml").to.eql pdoc for pdoc in tdoc.patterns
       expect(loadYaml path.join matchdir, mdoc.name+".yaml").to.eql mdoc for mdoc in tdoc.matches
 
   it "can list the names of all tournaments", ->
@@ -58,5 +58,45 @@ describe "The Repository",->
     ]).to.be.fulfilled.then ->
       expect(repository.allTournaments()).to.eventually.eql ['/t1','/t2','/t3']
 
-  it "can get two patterns with a fair ELO rating", ->
+  it "can persist a pattern on the local file system", ->
+    tdoc = b.tournament
+    tournamentName = tdoc.name
+    tdir = path.join CGOL_HOME, tdoc.name
+    mkdir tdir
+    pdir = path.join tdir, 'patterns'
+    mkdir pdir
+    pdoc = b.pattern
+      name:"TestPattern"
+      author:"Mocha"
+      mail:"repo-spec@tarent.de"
+      elo:1000
+      base64String:"abcdefg=="
+      pin:"12345"
+    expect(repository.savePattern(pdoc,tdoc.name)).to.be.fulfilled.then ->
+      pfile = path.join pdir, pdoc.mail+".yaml"
+      expect(loadYaml pfile).to.eql pdoc
     
+  it "wont persist two patterns with the same mail addres", ->
+    tdoc = b.tournament
+    tournamentName = tdoc.name
+    tdir = path.join CGOL_HOME, tdoc.name
+    mkdir tdir
+    pdir = path.join tdir, 'patterns'
+    mkdir pdir
+    pdoc1 = b.pattern
+      name:"TestPattern1"
+      author:"Mocha"
+      mail:"repo-spec@tarent.de"
+      elo:1000
+      base64String:"abcdefg=="
+      pin:"12345"
+    pdoc2 = b.pattern
+      name:"TestPattern2"
+      author:"Chai"
+      mail:"repo-spec@tarent.de"
+      elo:1000
+      base64String:"hjklmno=="
+      pin:"12345"
+    expect(repository.savePattern(pdoc1, tdoc.name)).to.be.fulfilled.then ->
+      expect(repository.savePattern(pdoc2, tdoc.name)).to.be.rejected
+      expect(repository.savePattern(pdoc2,tdoc.name)).to.be.rejectedWith("Mail already in use!")
