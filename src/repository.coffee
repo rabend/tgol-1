@@ -8,6 +8,7 @@ module.exports = (CGOL_HOME, settings)->
   writeFile = Promise.promisify fs.writeFile
   readFile = Promise.promisify fs.readFile
   dump = require("js-yaml").dump
+  loadYaml = require("./load-yaml")
 
   savePattern = (pdoc, tournamentName)->
     tdir = path.join CGOL_HOME, tournamentName
@@ -58,6 +59,15 @@ module.exports = (CGOL_HOME, settings)->
           .sort()
   
   
+  getPatternsForTournament = (tournamentName)->
+    pdir = path.join CGOL_HOME, tournamentName, 'patterns'
+    readdir root:pdir, depth:0, entryType:'files'
+      .then (entryStream)->
+        entryStream.files
+          .map (file)->
+            loadYaml file.fullPath
+            
+
   isMailAlreadyInUse = (mail)->
     readdir root:CGOL_HOME, entryType: 'files'
     .then (entryStream)->
@@ -69,3 +79,4 @@ module.exports = (CGOL_HOME, settings)->
   allTournaments: allTournaments
   saveTournament: saveTournament
   savePattern: savePattern
+  getPatternsForTournament:getPatternsForTournament

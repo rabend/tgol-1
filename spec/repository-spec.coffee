@@ -78,7 +78,6 @@ describe "The Repository",->
     
   it "wont persist two patterns with the same mail addres", ->
     tdoc = b.tournament
-    tournamentName = tdoc.name
     tdir = path.join CGOL_HOME, tdoc.name
     mkdir tdir
     pdir = path.join tdir, 'patterns'
@@ -100,3 +99,31 @@ describe "The Repository",->
     expect(repository.savePattern(pdoc1, tdoc.name)).to.be.fulfilled.then ->
       expect(repository.savePattern(pdoc2, tdoc.name)).to.be.rejected
       expect(repository.savePattern(pdoc2,tdoc.name)).to.be.rejectedWith("Mail already in use!")
+
+  it "can load an array of pattern documents from the file system", ->
+    tdoc = b.tournament
+    tdir = path.join CGOL_HOME, tdoc.name
+    mkdir tdir
+    pdir = path.join tdir, 'patterns'
+    mkdir pdir
+    pdoc1 = b.pattern
+      name:"TestPattern1"
+      author:"Mocha"
+      mail:"repo-spec1@tarent.de"
+      elo:1000
+      base64String:"abcdefg=="
+      pin:"12345"
+    pdoc2 = b.pattern
+      name:"TestPattern2"
+      author:"Chai"
+      mail:"repo-spec2@tarent.de"
+      elo:1000
+      base64String:"hjklmno=="
+      pin:"12345"
+    expect(repository.savePattern(pdoc1, tdoc.name)).to.be.fulfilled.then ->
+     expect(repository.savePattern(pdoc2, tdoc.name)).to.be.fulfilled.then ->
+       expect(repository.getPatternsForTournament(tdoc.name)).to.be.fulfilled.then (patterns)->
+         expect(patterns).to.be.an('array')
+         expect(patterns).to.have.length(2)
+         expect(patterns).to.include(pdoc1)
+         expect(patterns).to.include(pdoc2)
