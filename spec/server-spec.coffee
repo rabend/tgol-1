@@ -35,7 +35,7 @@ describe "The Service", ->
   settings = loadYaml path.resolve __dirname, "../settings.yaml"
   settings.port = 9988
 
-  base = "http://localhost:#{settings.port}/api"
+  base = "http://localhost:#{settings.port}"
   beforeEach ->
     builder = Builder()
     CGOL_HOME = tmpFileName @test
@@ -55,7 +55,7 @@ describe "The Service", ->
     given: (a)->
       a.tournament name: 'onkels'
       a.tournament name: 'tanten'
-    when: -> request "#{base}/"
+    when: -> request "#{base}/api"
     then: (resp)->
       expect(resp.statusCode).to.eql 200
       expect(JSON.parse resp.body).to.eql
@@ -64,4 +64,22 @@ describe "The Service", ->
           '/onkels'
           '/tanten'
         ]
-  
+
+  it "can persist an uploaded pattern", example
+    given: (a)->
+      a.tournament name:"TestTournament"
+    when: ->
+      auth =
+        url:base+'/api/TestTournament/patterns'
+        method: 'POST'
+        json:
+          pdoc:
+            name:'MyPattern'
+            author:'John Doe'
+            mail:'john@tarent.de'
+            elo:1000
+            base64String:'lkjfazakjds=='
+            pin:'12345'
+      request auth
+    then: (resp)->
+      expect(resp.statusCode).to.eql 200

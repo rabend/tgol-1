@@ -5,6 +5,8 @@ module.exports = (CGOL_HOME, settings)->
   coffeeify = require "coffeeify"
   path = require "path"
   repo = Repository CGOL_HOME, settings
+  bodyParser = require "body-parser"
+  jsonParser = bodyParser.json()
 
   packageJson = require "../package.json"
   service = Express()
@@ -56,12 +58,23 @@ module.exports = (CGOL_HOME, settings)->
         games: 3
         score: 234
         mail: 'romanabendroth@t-online.de'}
-        {name: 'Jade'
+        {name: 'Tester1'
         games: 4
         score: 456
-        mail: 'jade.teodoro@gmail.com'}
+        mail: 'service-spec@tarent.de'}
       ]
 
+  service.post '/api/:tournament/patterns',jsonParser, (req, res)->
+    pdoc = req.body.pdoc
+    try
+      repo.savePattern(pdoc,req.params.tournament).then ->
+        res.statusCode = 200
+        res.sendFile path.resolve __dirname, '..', 'static', 'index.html'
+    catch e
+      res.statusCode = 901
+      res.sendFile path.resolve __dirname, '..', 'static', 'error.html'
+
+      
   service.get '/kiosk/leaderboard', (req, res) ->
     res.sendFile path.resolve __dirname, '..', 'static', 'leaderboard.html'
 
