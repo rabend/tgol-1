@@ -21,6 +21,8 @@ module.exports = ( layer, cells, transforms, selection)->
   gCellEnter = gCell.enter()
     .append "g"
     .classed "cell", true
+    .classed "white", ([x,y,z])->z==0
+    .classed "black", ([x,y,z])->z==1
     .attr "transform", ([x,y])->
       "translate(#{[x,y]})"
   gCellEnter

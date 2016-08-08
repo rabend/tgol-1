@@ -81,7 +81,11 @@ svg {
   height:100%;
 }
 
-.cell {
+.cell.black {
+  fill: red;
+  stroke: white;
+}
+.cell.white {
   fill: blue;
   stroke: white;
 }
