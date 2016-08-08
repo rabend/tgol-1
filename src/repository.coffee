@@ -66,6 +66,15 @@ module.exports = (CGOL_HOME, settings)->
         entryStream.files
           .map (file)->
             loadYaml file.fullPath
+
+  getPattern = (base64String, tournamentName)->
+    pdir = path.join CGOL_HOME, tournamentName, 'patterns'
+    readdir root:pdir, depth:0, entryType:'files'
+      .then (entryStream)->
+        files = entryStream.files
+          .map (entry)->
+            loadYaml entry.fullPath
+        return file for file in files when file.base64String is base64String
             
 
   isMailAlreadyInUse = (mail)->
@@ -80,3 +89,4 @@ module.exports = (CGOL_HOME, settings)->
   saveTournament: saveTournament
   savePattern: savePattern
   getPatternsForTournament:getPatternsForTournament
+  getPattern:getPattern
