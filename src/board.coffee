@@ -1,9 +1,10 @@
 merge = require "deepmerge"
 BBox = require "./bbox"
 Pattern = require "./pattern"
-
+AsciiArt = require "./ascii-art"
+Util = require "./util"
 Board = (spec)->
-  _livingCells = new Pattern(spec).cells
+  _livingCells = Util.cells spec, parseColors:true
   _bbox=null
 
 
@@ -22,46 +23,72 @@ Board = (spec)->
     [[x,y]] = _livingCells.splice i,1
     if _bbox?.touches [x,y]
       _bbox = null
-  spawn =(x,y)->
-    c= [x,y]
+  spawn =(x,y,z)->
+    c= [x,y,z]
     _livingCells.push c
     _bbox?.add c
 
-  toggle = (x,y)->
+  toggle = (x,y,z)->
     i = indexOf x,y
     if i?
       kill i
     else
-      spawn x,y
+      spawn x,y,z
     this
 
-  neighbours = ([x,y])-> 
+  neighbours = ([x,y])->
     [
       [x-1,y-1], [x,y-1], [x+1,y-1]
       [x-1,y],            [x+1,y]
       [x-1,y+1], [x,y+1], [x+1,y+1]
     ]
   next = ()->
-    counters={}
-    live={}
-    for cell in _livingCells
-      live[cell]=true
-      for neighbour in neighbours cell
+    #FIXME: this code assumes that only colors 0 and 1 are used!!
+    counters={} #"x,y" : [[x, y], counterA, counterB ]
+    live={} # "x,y": color
+
+    # We are only interested in cells that have living neighbours *now*.
+    # (Remember that cells without living neighbours do not live in the next
+    # generation.) Since neighbourhood is symmetric, we can simply iterate the
+    # neighbours of all living cells.  For these cells, we accumulate two
+    # counters, one for each color. I.e. for each neighbour n and each color c,
+    # we count how many times the n was found when expanding the neighbourhood
+    # of a living cell of color c.
+    #
+    # We also build a hash table for quickly looking up the color of all cells
+    # that are currently alive.
+    for [x,y,z] in _livingCells
+      live[[x,y]]=z
+      for neighbour in neighbours [x,y]
         if counters[neighbour]?
-          counters[neighbour][1]++
+          counters[neighbour][1+z]++
         else
-          counters[neighbour]=[neighbour,1]
-    
-    nextCells = (cell for _,[cell,counter] of counters when counter == 3 or live[cell] and 2 <= counter <=3)
+          counters[neighbour]=[neighbour,1-z,z]
+
+    # Any cell that is alive in the next generation *does* have an entry in our
+    # counters table.  So we run over the entries of our counters-table and
+    # apply the usual GoL ruleset.  For determining the color of newborn cells,
+    # we use the "Immigration" rule (also known as "Black and White").
+    nextCells = []
+    for _,[cell,colorA,colorB] of counters
+      z = live[cell]
+      livingNeighbours = colorA + colorB
+
+      #  +--- dead cell is  reborn---+      +--- living cell survives ---------+
+      #  |     (if z is undefined)   |      |                                  |
+      if   livingNeighbours == 3        or    z? and 2 <= livingNeighbours <=3
+        z = z ? (if colorA > colorB then 0 else 1)
+        [x,y] = cell
+        nextCells.push [x,y,z]
+
     Board nextCells
 
   livingCells:livingCells
   bbox:bbox
   alive:alive
   toggle:toggle
-  asciiArt: -> 
-    p=new Pattern(_livingCells)
-    p.asciiArt.apply this,arguments
+  asciiArt: (extent)->
+    AsciiArt.render _livingCells, extent:extent
   next:next
 
 module.exports= Board

@@ -1,39 +1,14 @@
 isArray = require("util").isArray
 merge = require "deepmerge"
-Promise = require "bluebird"
-zlib = require "zlib"
-deflate = Promise.promisify zlib.deflate
-inflate = Promise.promisify zlib.inflate
 BBox = require "./bbox"
-parseString = (s)->
-  cells = []
-  rows = s
-    .replace /\|/g, ''
-    .split '\n'
-  for row,y in rows
-    for char,x in row
-      cells.push [x,y] if char == '*'
-  cells
+AsciiArt = require "./ascii-art"
+Util = require "./util"
 
-cantorCode = ([x,y]) -> (x+y)*(x+y+1)/2 + y
-cantorDecode = (z) ->
-  j = Math.floor(Math.sqrt(0.25 + 2*z) - 0.5)
-  y = z- j*(j+1)/2
-  x = j-y
-  [x,y]
 
 class Pattern
   constructor: (input, bbox)->
     throw new Error "you forgot to use 'new', doh!" if not (this instanceof Pattern)
-    switch
-      when typeof input == "string" and input[1] == '|' then @cells= parseString input
-      when isArray input
-        if input.length==0 or isArray input[0]
-          @cells = input
-        else if typeof input[0] == "number"
-          @cells = input.map cantorDecode
-        else throw new Error "input must be either a string, an array of coordinate pairs or an array of Cantor Numbers"
-      else throw new Error "bad input"
+    @cells = Util.cells input
     if bbox?
       @_bbox= if bbox instanceof BBox then bbox else new BBox bbox
 
@@ -45,19 +20,9 @@ class Pattern
     return @indexOf(x,y)?
 
   asciiArt:(extent={})->
-    {left,top,right,bottom} = merge @bbox(), extent
+    AsciiArt.render @cells, extent:extent
 
-    ( for y in [top...bottom]
-        ( for x in [left...right]
-            if @alive x,y then '*|' else '_|'
-        ).join ''
-    ).join '\n'
-
-  encode: ->
-    coords = Array::concat.apply [], @cells
-    buf = Buffer.from Uint8Array.from coords
-    deflate buf
-      .then (zbuf)->zbuf.toString "base64"
+  encode: -> Util.encodeCoordinates @cells
 
   bbox: ->@_bbox?=new BBox @cells
   translate: (dx,dy)->
@@ -78,7 +43,7 @@ class Pattern
     cells = ([-x,y] for [x,y] in @cells)
     new Pattern cells, @_bbox?.hflip()
   codes: ()->
-    @_cantorCodes ?= @cells.map(cantorCode).sort (a,b)->a-b
+    @_cantorCodes ?= @cells.map(Util.cantorCode).sort (a,b)->a-b
   compareTo: (o)->
     myCodes = @codes().slice().reverse()
     otherCodes = o.codes().slice().reverse()
@@ -122,11 +87,6 @@ class Pattern
           return true
     new Pattern newCells
 
-Pattern.decode = (s)->
-  buf = new Buffer s, "base64"
-  inflate buf
-    .then (buf)->
-      flatCoords = Uint8Array.from buf
-      new Pattern ([flatCoords[2*i],flatCoords[2*i+1]] for i in [0...flatCoords.length/2])
+Pattern.decode = (s)-> Util.decodeCoordinates(s).then (cells)->new Pattern cells
 
 module.exports= Pattern

@@ -1,7 +1,7 @@
 describe "The Board", ->
   Board = require "../src/board"
   BBox = require("../src/bbox")
-  cell = (x,y)->[x,y]
+  cell = (x,y,z=0)->[x,y,z]
 
   it "has a list of living cells and a bounding box", ->
     board = Board """ 
@@ -103,6 +103,23 @@ describe "The Board", ->
     _|_|_|_|
     """
 
+  it "allows living cells with two different colors", ->
+     
+    board = Board """ 
+     _|_|_|_|_|
+     _|_|*|_|_|
+     _|_|_|o|_|
+     _|*|*|o|_|
+     _|_|_|_|_|
+    """
+    expect(board.livingCells()).to.eql [
+      cell 2,1,0
+      cell 3,2,1
+      cell 1,3,0
+      cell 2,3,0
+      cell 3,3,1
+    ]
+
   it "can calculate the next generation of cells", ->
     board = Board """ 
      _|_|_|_|
@@ -116,4 +133,23 @@ describe "The Board", ->
      _|*|_|*|
      _|_|*|*|
      _|_|*|_|
+    """
+
+
+  it "adheres to the 'Immigration' (a.k.a. 'Black and White') rules", ->
+    board = Board """ 
+     _|_|_|
+     _|*|_|
+     _|*|_|
+     _|o|_|
+     _|o|_|
+     _|_|_|
+    """
+    expect(board.next().asciiArt left:0,top:0,bottom:6).to.eql """
+     _|_|_|
+     _|_|_|
+     *|*|*|
+     o|o|o|
+     _|_|_|
+     _|_|_|
     """
