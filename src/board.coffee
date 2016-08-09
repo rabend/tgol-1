@@ -36,6 +36,33 @@ Board = (spec)->
       spawn x,y,z
     this
 
+  paste = (pattern, z)->
+    for [x,y] in pattern.cells
+      i = indexOf x,y
+      if i?
+        _livingCells[i][2]=z
+      else
+        _livingCells.push [x,y,z]
+    _bbox=null
+
+  copy = (spec)->
+    bbox = new BBox spec
+    cells = ([x,y] for [x,y] in _livingCells when bbox.includes [x,y])
+    new Pattern cells
+
+  cut = (spec)->
+    bbox = new BBox spec
+    remaining =  []
+    deleted = []
+    for [x,y,z] in _livingCells
+      if bbox.includes [x,y]
+        deleted.push [x,y]
+      else
+        remaining.push [x,y,z]
+    _livingCells = remaining
+    _bbox = null
+    new Pattern deleted
+
   neighbours = ([x,y])->
     [
       [x-1,y-1], [x,y-1], [x+1,y-1]
@@ -90,5 +117,8 @@ Board = (spec)->
   asciiArt: (extent)->
     AsciiArt.render _livingCells, extent:extent
   next:next
+  paste:paste
+  copy:copy
+  cut:cut
 
 module.exports= Board

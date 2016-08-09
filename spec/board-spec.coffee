@@ -1,6 +1,7 @@
 describe "The Board", ->
   Board = require "../src/board"
   BBox = require("../src/bbox")
+  Pattern = require "../src/pattern"
   cell = (x,y,z=0)->[x,y,z]
 
   it "has a list of living cells and a bounding box", ->
@@ -152,4 +153,70 @@ describe "The Board", ->
      o|o|o|
      _|_|_|
      _|_|_|
+    """
+
+  it "can paste a pattern in a given color", ->
+    board = Board """ 
+     _|_|_|_|_|
+     _|_|*|_|_|
+     _|_|_|*|_|
+     _|*|*|*|_|
+     _|_|_|_|_|
+    """
+
+    pattern = new Pattern """
+    _|*|_|
+    _|_|*|
+    *|*|*|
+    """
+
+    board.paste pattern, 1
+
+    expect(board.asciiArt left:0,top:0,bottom:5,right:5).to.eql """ 
+     _|o|_|_|_|
+     _|_|o|_|_|
+     o|o|o|*|_|
+     _|*|*|*|_|
+     _|_|_|_|_|
+    """
+
+  it "can create a (single-color) pattern from a rectangular area of the board", ->
+    board = Board """
+     _|o|_|_|_|
+     _|_|o|_|_|
+     o|o|o|*|_|
+     _|*|*|*|_|
+     _|_|_|_|_|
+    """
+    pattern = board.copy left:1, top:2, right:4, bottom:4
+    expect(pattern.asciiArt left:0,top:0, bottom:5, right:5).to.eql """
+     _|_|_|_|_|
+     _|_|_|_|_|
+     _|*|*|*|_|
+     _|*|*|*|_|
+     _|_|_|_|_|
+    """
+
+  it "can erase a rectangular area of the board", ->
+    board = Board """
+     _|o|_|_|_|
+     _|_|o|_|_|
+     o|o|o|*|_|
+     _|*|*|*|_|
+     _|_|_|_|_|
+    """
+    pattern = board.cut left:1, top:2, right:4, bottom:4
+    expect(pattern.asciiArt left:0,top:0, bottom:5, right:5).to.eql """
+     _|_|_|_|_|
+     _|_|_|_|_|
+     _|*|*|*|_|
+     _|*|*|*|_|
+     _|_|_|_|_|
+    """
+    expect(board.asciiArt left:0,top:0,bottom:5,right:5).to.eql """
+     _|o|_|_|_|
+     _|_|o|_|_|
+     o|_|_|_|_|
+     _|_|_|_|_|
+     _|_|_|_|_|
     """
