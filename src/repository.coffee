@@ -94,9 +94,10 @@ module.exports = (CGOL_HOME, settings)->
             
 
   getScores = (tournamentName)->
-    readdir path.join CGOL_HOME, tournamentName, 'matches'
+    mdir = path.join CGOL_HOME, tournamentName, 'matches'
+    readdir root:mdir, depth:0, entryType:'files' 
       .then (scores)->
-        data: [
+        data= [
           {name: 'Roman'
           games: 3
           score: 234
@@ -106,6 +107,8 @@ module.exports = (CGOL_HOME, settings)->
           score: 456
           mail: 'service-spec@tarent.de'}
         ]
+        data
+        
 
   isMailAlreadyInUse = (mail)->
     readdir root:CGOL_HOME, entryType: 'files'

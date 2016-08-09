@@ -185,12 +185,12 @@ describe "The Repository",->
          expect(pattern2).to.be.eql(pdoc2)
 
 
-  it "can get an object containing an array of player information for the leaderboard", ->
+  it "can get an array of player information for the leaderboard", ->
     tdoc = b.tournament
     tdir = path.join CGOL_HOME, tdoc.name 
     mkdir tdir
     mdir = path.join tdir, 'matches'
     mkdir mdir
     expect(repository.getScores(tdoc.name)).to.be.fulfilled.then (scores)->
-      expect(scores).to.be.an('object').which.has.a.property('data').which.is.an('array')
-      expect(scores.data[0]).to.have.a.property('score')
+      expect(scores).to.be.an('array')
+      expect(scores[0]).to.have.a.property('score')
