@@ -23,6 +23,7 @@ class Pattern
     AsciiArt.render @cells, extent:extent
 
   encode: -> Util.encodeCoordinates @cells
+  encodeSync: -> Util.encodeCoordinatesSync @cells
 
   bbox: ->@_bbox?=new BBox @cells
   translate: (dx,dy)->

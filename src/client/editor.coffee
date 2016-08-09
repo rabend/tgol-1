@@ -94,10 +94,18 @@ class Editor extends React.Component
         board.paste pattern, Math.round Math.random()
         @setState
           livingCells: board.livingCells()
+    @details =
+      name: "details"
+      icon: "details.svg"
+      link: =>
+        pattern = new Pattern @patternCells()
+        "patterns/"+encodeURIComponent pattern.minimize().encodeSync()
+        
+
     commands=
       edit:[@play,@select, @fit ]
       select:[@copy, @back]
-      pattern:[@back]
+      pattern:[@back,@details]
       play:[@back, @fit]
     
 

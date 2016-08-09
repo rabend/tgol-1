@@ -181,7 +181,8 @@ class Visualiztation extends React.Component
       bus("selection").plug brushEvents
       bus("selectionDone").plug brushDoneEvents
       bus("tap-pattern").plug eventStream patternLayer, "click"
-
+    @destroy = ->
+      #TODO: unwire gestures!
     @update = ->
       root = @getDOMNode()
       svg = d3.select(root).select("svg")
@@ -227,9 +228,9 @@ class Visualiztation extends React.Component
       selectionUi.exit()
         .remove()
 
-      {top:wt,left:wl,bottom:wb,right:wr}= @props.window
-      debugPoint canvas, [[wl,wt],[wr,wb]], "window"
-      debugPoint canvas, selection, "selection"
+      #{top:wt,left:wl,bottom:wb,right:wr}= @props.window
+      #debugPoint canvas, [[wl,wt],[wr,wb]], "window"
+      #debugPoint canvas, selection, "selection"
   @defaultProps:
     mode:"edit"
     # these are world coordinates, but not necessarily integers.
