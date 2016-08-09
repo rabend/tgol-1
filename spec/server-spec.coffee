@@ -43,8 +43,19 @@ describe "The Service", ->
     mkdir CGOL_HOME
       .then ->
         repo = Repository CGOL_HOME
-        server = Server CGOL_HOME, settings
-        server.start()
+        tdoc = builder.tournament
+          name:'TestTournament'
+          patterns:[
+            name:'MyPattern'
+            author:'John Doe'
+            mail:'john@tarent.de'
+            elo:1000
+            base64String:'lkjfazakjds=='
+            pin:'12345'
+          ]
+        repo.saveTournament(tdoc).then ->
+          server = Server CGOL_HOME, settings
+          server.start()
   afterEach ->
     server
       .stop()
@@ -52,88 +63,96 @@ describe "The Service", ->
 
 ##################################################################################################
 
-  it "reports its own version and a links to all tournaments", example
-    given: (a)->
-      a.tournament name: 'onkels'
-      a.tournament name: 'tanten'
-    when: -> request "#{base}/api"
-    then: (resp)->
+  it "reports its own version and a links to all tournaments", ->
+    repo.saveTournament(builder.tournament name: 'onkels')
+    repo.saveTournament(builder.tournament name: 'tanten')
+    expect(request "#{base}/api").to.be.fulfilled.then (resp)->
       expect(resp.statusCode).to.eql 200
       expect(JSON.parse resp.body).to.eql
         version: require("../package.json").version
         tournaments: [
+          '/TestTournament'
           '/onkels'
           '/tanten'
         ]
 
-  it "can persist an uploaded pattern", example
-    given: (a)->
-      a.tournament name:"TestTournament"
-    when: ->
-      pdoc=
-        name:'MyPattern'
-        author:'John Doe'
-        mail:'john@tarent.de'
-        elo:1000
-        base64String:'lkjfazakjds=='
-        pin:'12345'
-      auth =
-        url:base+'/api/TestTournament/patterns'
-        method: 'POST'
-        json:
-          pdoc:
-            name:'MyPattern'
-            author:'John Doe'
-            mail:'john@tarent.de'
-            elo:1000
-            base64String:'lkjfazakjds=='
-            pin:'12345'
-      request auth
-    then: (resp)->
+
+  it "can persist an uploaded pattern", ->
+    pdoc=
+      name:'MyPattern'
+      author:'John Doe'
+      mail:'uploaded@tarent.de'
+      elo:1000
+      base64String:'lkjfazakjds=='
+      pin:'12345'
+    auth =
+      url:base+'/api/TestTournament/patterns'
+      method: 'POST'
+      json:
+        pdoc:
+          name:'MyPattern'
+          author:'John Doe'
+          mail:'uploaded@tarent.de'
+          elo:1000
+          base64String:'lkjfazakjds=='
+          pin:'12345'
+    expect(request auth).to.be.fulfilled.then (resp)->
       expect(resp.statusCode).to.eql 200
-      expect(repo.getPatternByBase64ForTournament('lkjfazakjds==', 'TestTournament')).to.be.fulfilled.then (resPdoc)->
-        expect(resPdoc).to.be.eql pdoc
+      pfile = path.join CGOL_HOME, 'TestTournament', 'patterns', pdoc.mail+'.yaml'
+      expect(loadYaml pfile).to.eql pdoc
 
 
-  # it "can answer if a pattern has already been uploaded to a tournament", example
-  #   given: (a)->
-  #     a.tournament 
-  #       name:"TestTournamentForBaseRecog"
-  #       patterns:[
-  #         pdoc:
-  #           name:'MyPattern'
-  #           author:'John Doe'
-  #           mail:'john@tarent.de'
-  #           elo:1000
-  #           base64String:'lkjfazakjds=='
-  #           pin:'12345'
-  #       ]
-  #     # auth =
-  #     #   url:base+'/api/TestTournament/patterns'
-  #     #   method: 'POST'
-  #     #   json:
-  #     #     pdoc:
-  #     #       name:'MyPattern'
-  #     #       author:'John Doe'
-  #     #       mail:'john@tarent.de'
-  #     #       elo:1000
-  #     #       base64String:'lkjfazakjds=='
-  #     #       pin:'12345'
-  #     # request auth
-  #   when: ->
-  #     request(base+'/api/TestTournament/patterns/lkjfazakjds==')
-  #       .then (resp)->
-  #         expect(resp.statusCode).to.eql 200
-  #         expect(JSON.parse resp.body).to.eql pdoc
+  # it "can answer if a pattern has already been uploaded to a tournament", ->
+  #   this.timeout(5000)
+  #   request(base+'/api/TestTournament/patterns/lkjtewqfsdufafazakjds==')
+  #     .then (resp)->
+  #       expect(resp.statusCode).to.eql 200
+  #       expect(JSON.parse resp.body).to.eql pdoc
+    
+  
+  it "can persist an uploaded match", ->
+    mdoc: 
+      id:'match_101'
+      pattern1:
+        name:'john@tarent.de'
+        translation:'-1/4'
+        modulo:3
+        score:0
+      pattern2:
+        name:'test@tarent.de'
+        translation:'5/-8'
+        modulo:7
+        score:0
+      pin:673428
+    auth = 
+      url:base+'/api/TestTournament/matches'
+      method:'POST'
+      json:
+        mdoc:
+         id:'match_101'
+         pattern1:
+           name:'john@tarent.de'
+           translation:'-1/4'
+           modulo:3
+           score:0
+         pattern2:
+           name:'test@tarent.de'
+           translation:'5/-8'
+           modulo:7
+           score:0
+         pin:673428
+    expect(request auth).to.be.fulfilled.then (resp)->
+      expect(resp.statusCode).to.eql 200
+      mfile = path.join CGOL_HOME, 'TestTournament', 'matches', mdoc.id+'.yaml'
+      expect(loadYaml mfile).to.eql mdoc
 
 
   it "can return scores for the matches to be displayed on a leaderboard", ->
-    given: (a)->
-      a.tournament name:"TestTournament"
-    when: ->
-      request "#{base}/api/TestTournament/leaderboard"
-        .then (resp)->
-          expect(resp.statusCode).to.eql 200
-          expect(JSON.parse resp.body).to.be.an('array')
-          expect(JSON.parse(resp.body)).to.have.property('data')
-          expect(JSON.parse(resp.body)).has.a.property('data').which.is.an('array').which.has.a.length.of.at.least(1)
+    request "#{base}/api/TestTournament/leaderboard"
+      .then (resp)->
+        expect(resp.statusCode).to.eql 200
+        expect(JSON.parse resp.body).to.be.an('array')
+        expect(JSON.parse(resp.body)[0]).to.be.an('object').which.has.a.property('score')
+        expect(JSON.parse(resp.body)[0]).to.be.an('object').which.has.a.property('name')
+        expect(JSON.parse(resp.body)[0]).to.be.an('object').which.has.a.property('games')
+        

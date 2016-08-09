@@ -45,8 +45,7 @@ module.exports = (CGOL_HOME, settings)->
         modulo:mdoc.pattern2.modulo
         score:mdoc.pattern2.score
       pin: mdoc.pin
-      
- 
+       
 
   saveTournament = (tdoc)->
     tdir = path.join CGOL_HOME,tdoc.name
@@ -90,7 +89,10 @@ module.exports = (CGOL_HOME, settings)->
         files = entryStream.files
           .map (entry)->
             loadYaml entry.fullPath
-        return file for file in files when file.base64String is base64String
+        for file in files
+          if file.base64String == base64String
+            return file
+        return undefined
             
 
   getScores = (tournamentName)->

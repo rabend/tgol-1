@@ -183,6 +183,8 @@ describe "The Repository",->
          expect(pattern2).to.not.be.undefinded
          expect(pattern2).to.not.be.an('array')
          expect(pattern2).to.be.eql(pdoc2)
+       expect(repository.getPatternByBase64ForTournament('abcetasd==', tdoc.name)).to.be.fulfilled.then (pattern3)->
+         expect(pattern3).to.be.undefinded
 
 
   it "can get an array of player information for the leaderboard", ->
