@@ -1,6 +1,7 @@
 React = require "react"
+qr = require "qr-image"
 Pattern = require "../pattern"
-{h1,div,factory,input, button, span} = require "../react-utils"
+{h1,div,factory,input, button, span, img} = require "../react-utils"
 kbpgp = require "kbpgp"
 Promise = require "bluebird"
 
@@ -62,6 +63,9 @@ module.exports = class PatternDetail extends React.Component
       Visualization
         livingCells:pattern.cells
         window:pattern.bbox()
+      img
+        className: "qr-code"
+        src:"data:image/png;base64," + qr.imageSync( window.location.toString(), type:"png").toString("base64")
       div 
         className: "field-group"
         input type:"text", placeholder:"Name"
