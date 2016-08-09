@@ -52,8 +52,8 @@ module.exports = (CGOL_HOME, settings)->
           tournaments: tnames
 
 
-  service.get '/api/leaderboard', (req, res)->
-    repo.getScores('TestTournament')
+  service.get '/api/:tournamentName/leaderboard', (req, res)->
+    repo.getScores(req.params.tournamentName)
       .then (scores)->
         res.status(200).json(scores)
                 
