@@ -64,8 +64,8 @@ class Editor extends React.Component
       icon: "copy.svg"
       action: => 
         [[l,t],[r,b]] = @state.selection
-        pattern = new Pattern @livingCells()
-          .clip left:l,top:t,right:r,bottom:b
+        pattern = @board()
+          .copy left:l,top:t,right:r,bottom:b
         @setState 
           mode: "pattern"
           pattern: pattern.cells
@@ -77,24 +77,23 @@ class Editor extends React.Component
       action: => 
         [[l,t],[r,b]] = @state.selection
         box = {left:l,top:t,right:r,bottom:b}
-        pattern = new Pattern @livingCells()
-          .clip box
-        living = new Pattern @livingCells()
-          .cut box
+        board = @board()
+        pattern = board.cut box
         @setState 
           mode: "pattern"
           pattern: pattern.cells
-          livingCells: living.cells
+          livingCells: board.livingCells()
           translate: [0,0]
           selection: null
     @paste=
       name: "paste"
       icon: "none"
       action: =>
-        a = new Pattern @livingCells()
-        b = new Pattern @patternCells()
+        board = @board()
+        pattern = new Pattern @patternCells()
+        board.paste pattern, Math.round Math.random()
         @setState
-          livingCells: a.union(b).cells
+          livingCells: board.livingCells()
     commands=
       edit:[@play,@select, @fit ]
       select:[@copy, @back]
@@ -144,8 +143,6 @@ class Editor extends React.Component
       new Pattern @state.pattern
         .translate dx,dy
         .cells
-  componentDidMount: ->
-    console.log @props.children
   render: ->
     (div className:"layout",
       (div id:"top-panel", className:"panel top",
