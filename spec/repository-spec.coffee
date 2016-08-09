@@ -48,7 +48,7 @@ describe "The Repository",->
         pin:tdoc.pin
 
       expect(loadYaml path.join patterndir, pdoc.mail+".yaml").to.eql pdoc for pdoc in tdoc.patterns
-      expect(loadYaml path.join matchdir, mdoc.name+".yaml").to.eql mdoc for mdoc in tdoc.matches
+      expect(loadYaml path.join matchdir, mdoc.id+".yaml").to.eql mdoc for mdoc in tdoc.matches
 
   it "can list the names of all tournaments", ->
     expect(Promise.all [
@@ -100,6 +100,31 @@ describe "The Repository",->
       expect(repository.savePattern(pdoc2, tdoc.name)).to.be.rejected
       expect(repository.savePattern(pdoc2,tdoc.name)).to.be.rejectedWith("Mail already in use!")
 
+
+  it "can persist match data on the file system", ->
+    tdoc = b.tournament
+    tdir = path.join CGOL_HOME, tdoc.name
+    mkdir tdir
+    mdir = path.join tdir, 'matches'
+    mkdir mdir
+    mdoc = 
+      id:'123'
+      pattern1:
+        name:'test@tarent.de'
+        translation:'1/3'
+        modulo:3
+        score:123
+      pattern2:
+        name:'john@tarent.de'
+        translation:'-6/-4'
+        modulo:6
+        score:456
+      pin:12345
+    expect(repository.saveMatch(mdoc, tdoc.name)).to.be.fulfilled.then ->
+      mfile = path.join mdir, mdoc.id+'.yaml'
+      expect(loadYaml mfile).to.eql mdoc      
+
+
   it "can load an array of pattern documents from the file system", ->
     tdoc = b.tournament
     tdir = path.join CGOL_HOME, tdoc.name
@@ -150,11 +175,22 @@ describe "The Repository",->
       pin:"12345"
     expect(repository.savePattern(pdoc1, tdoc.name)).to.be.fulfilled.then ->
      expect(repository.savePattern(pdoc2, tdoc.name)).to.be.fulfilled.then ->
-       expect(repository.getPattern(pdoc1.base64String, tdoc.name)).to.be.fulfilled.then (pattern)->
+       expect(repository.getPatternByBase64ForTournament(pdoc1.base64String, tdoc.name)).to.be.fulfilled.then (pattern)->
          expect(pattern).to.not.be.undefinded
          expect(pattern).to.not.be.an('array')
          expect(pattern).to.be.eql(pdoc1)
-       expect(repository.getPattern(pdoc2.base64String, tdoc.name)).to.be.fulfilled.then (pattern2)->
+       expect(repository.getPatternByBase64ForTournament(pdoc2.base64String, tdoc.name)).to.be.fulfilled.then (pattern2)->
          expect(pattern2).to.not.be.undefinded
          expect(pattern2).to.not.be.an('array')
          expect(pattern2).to.be.eql(pdoc2)
+
+
+  it "can get an object containing an array of player information for the leaderboard", ->
+    tdoc = b.tournament
+    tdir = path.join CGOL_HOME, tdoc.name 
+    mkdir tdir
+    mdir = path.join tdir, 'matches'
+    mkdir mdir
+    expect(repository.getScores(tdoc.name)).to.be.fulfilled.then (scores)->
+      expect(scores).to.be.an('object').which.has.a.property('data').which.is.an('array')
+      expect(scores.data[0]).to.have.a.property('score')

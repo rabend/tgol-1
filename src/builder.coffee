@@ -24,10 +24,19 @@ module.exports = ->
   match = ()->
     defaults=
       id:"match_"+matches.length
-      tournament:"tournament_"+tournaments.length-1
+      pattern1:
+        name:'pattern1'
+        translation:"1/1"
+        modulo:0
+        score:0
+      pattern2:
+        name:'pattern2'
+        translation:"2/2"
+        modulo:1
+        score:0
       pin:'t0ps3cr3t'
     doc = merge defaults, toArray arguments
-    patterns.push doc
+    matches.push doc
     doc
   pattern = ()->
     defaults=
@@ -49,7 +58,7 @@ module.exports = ->
     doc = merge defaults, toArray arguments
     tournaments.push doc
     doc.patterns = (pattern spec for spec in doc.patterns)
-    doc.matches = (match spec, tournament:doc.name for spec in doc.patterns)
+    doc.matches = (match spec for spec in doc.matches)
     doc
 
   pattern:pattern

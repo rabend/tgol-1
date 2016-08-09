@@ -38,31 +38,35 @@ module.exports = (CGOL_HOME, settings)->
     minify:true
   service.get '/js/client.js', browserify entry, external:shared
 
+  # static assets
+  service.use Express.static('static')
+
 
   # service root
   # TODO: move api routes to a separate module?
   service.get '/api', (req,res)->
     repo.allTournaments()
       .then (tnames)->
+        res.json
+          version: require("../package.json").version
+          tournaments: tnames
 
-          res.json
-            version: require("../package.json").version
-            tournaments: tnames
-  # static assets
-  service.use Express.static('static')
 
   service.get '/api/leaderboard', (req, res)->
-    res.json
-      data: [
-        {name: 'Roman'
-        games: 3
-        score: 234
-        mail: 'romanabendroth@t-online.de'}
-        {name: 'Tester1'
-        games: 4
-        score: 456
-        mail: 'service-spec@tarent.de'}
-      ]
+    repo.getScores('TestTournament')
+      .then (scores)->
+        res.status(200).json(scores)
+                
+
+  service.get '/api/:tournament/patterns/:base64String', (req, res)->
+    repo.getPatternByBase64ForTournament(req.params.base64String, req.params.tournament)
+      .then (pdoc)->
+        if pdoc is not undefined
+          res.statusCode = 200
+          res.json pdoc
+        else
+          res.statusCode = 404
+               
 
   service.post '/api/:tournament/patterns',jsonParser, (req, res)->
     pdoc = req.body.pdoc
@@ -74,9 +78,10 @@ module.exports = (CGOL_HOME, settings)->
       res.statusCode = 901
       res.sendFile path.resolve __dirname, '..', 'static', 'error.html'
 
-      
+
   service.get '/kiosk/leaderboard', (req, res) ->
     res.sendFile path.resolve __dirname, '..', 'static', 'leaderboard.html'
+
 
   # for everything else, just return index.html
   # so client-side routing works smoothly

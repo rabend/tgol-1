@@ -10,6 +10,7 @@ module.exports = (CGOL_HOME, settings)->
   dump = require("js-yaml").dump
   loadYaml = require("./load-yaml")
 
+
   savePattern = (pdoc, tournamentName)->
     tdir = path.join CGOL_HOME, tournamentName
     pdir = path.join tdir, 'patterns'
@@ -25,12 +26,26 @@ module.exports = (CGOL_HOME, settings)->
           elo:pdoc.elo
           base64String:pdoc.base64String
           pin:pdoc.pin
+
     
-  saveMatch = (mdoc)->
-    tdir = path.join CGOL_HOME,mdoc.tournament
+  saveMatch = (mdoc, tournamentName)->
+    tdir = path.join CGOL_HOME, tournamentName
     mdir = path.join tdir, 'matches'
-    mfile = path.join mdir, mdoc.name+".yaml"
-    writeFile mfile, dump mdoc
+    mfile = path.join mdir, mdoc.id+".yaml"
+    writeFile mfile, dump 
+      id: mdoc.id
+      pattern1:
+        name:mdoc.pattern1.name
+        translation:mdoc.pattern1.translation
+        modulo:mdoc.pattern1.modulo
+        score:mdoc.pattern1.score
+      pattern2:
+        name:mdoc.pattern2.name
+        translation:mdoc.pattern2.translation
+        modulo:mdoc.pattern2.modulo
+        score:mdoc.pattern2.score
+      pin: mdoc.pin
+      
  
 
   saveTournament = (tdoc)->
@@ -48,7 +63,7 @@ module.exports = (CGOL_HOME, settings)->
       .then ->
         Promise.all (savePattern pattern,tdoc.name for pattern in tdoc.patterns)
       .then ->
-        Promise.all (saveMatch match for match in tdoc.matches)
+        Promise.all (saveMatch match,tdoc.name for match in tdoc.matches)
 
 
   allTournaments = ->
@@ -67,7 +82,8 @@ module.exports = (CGOL_HOME, settings)->
           .map (file)->
             loadYaml file.fullPath
 
-  getPattern = (base64String, tournamentName)->
+
+  getPatternByBase64ForTournament = (base64String, tournamentName)->
     pdir = path.join CGOL_HOME, tournamentName, 'patterns'
     readdir root:pdir, depth:0, entryType:'files'
       .then (entryStream)->
@@ -76,6 +92,20 @@ module.exports = (CGOL_HOME, settings)->
             loadYaml entry.fullPath
         return file for file in files when file.base64String is base64String
             
+
+  getScores = (tournamentName)->
+    readdir path.join CGOL_HOME, tournamentName, 'matches'
+      .then (scores)->
+        data: [
+          {name: 'Roman'
+          games: 3
+          score: 234
+          mail: 'romanabendroth@t-online.de'}
+          {name: 'Tester1'
+          games: 4
+          score: 456
+          mail: 'service-spec@tarent.de'}
+        ]
 
   isMailAlreadyInUse = (mail)->
     readdir root:CGOL_HOME, entryType: 'files'
@@ -88,5 +118,7 @@ module.exports = (CGOL_HOME, settings)->
   allTournaments: allTournaments
   saveTournament: saveTournament
   savePattern: savePattern
+  saveMatch:saveMatch
   getPatternsForTournament:getPatternsForTournament
-  getPattern:getPattern
+  getPatternByBase64ForTournament:getPatternByBase64ForTournament
+  getScores:getScores

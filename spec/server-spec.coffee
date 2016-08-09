@@ -17,6 +17,7 @@ describe "The Service", ->
   CGOL_HOME = undefined
   builder = undefined
   repo = undefined
+  pdoc = undefined
   property = (name)->(obj)->obj[name]
 
   example = (gwt)->
@@ -69,6 +70,13 @@ describe "The Service", ->
     given: (a)->
       a.tournament name:"TestTournament"
     when: ->
+      pdoc=
+        name:'MyPattern'
+        author:'John Doe'
+        mail:'john@tarent.de'
+        elo:1000
+        base64String:'lkjfazakjds=='
+        pin:'12345'
       auth =
         url:base+'/api/TestTournament/patterns'
         method: 'POST'
@@ -83,3 +91,49 @@ describe "The Service", ->
       request auth
     then: (resp)->
       expect(resp.statusCode).to.eql 200
+      expect(repo.getPatternByBase64ForTournament('lkjfazakjds==', 'TestTournament')).to.be.fulfilled.then (resPdoc)->
+        expect(resPdoc).to.be.eql pdoc
+
+
+  it "can answer if a pattern has already been uploaded to a tournament", example
+    given: (a)->
+      a.tournament 
+        name:"TestTournamentForBaseRecog"
+        patterns:[
+          pdoc:
+            name:'MyPattern'
+            author:'John Doe'
+            mail:'john@tarent.de'
+            elo:1000
+            base64String:'lkjfazakjds=='
+            pin:'12345'
+        ]
+      # auth =
+      #   url:base+'/api/TestTournament/patterns'
+      #   method: 'POST'
+      #   json:
+      #     pdoc:
+      #       name:'MyPattern'
+      #       author:'John Doe'
+      #       mail:'john@tarent.de'
+      #       elo:1000
+      #       base64String:'lkjfazakjds=='
+      #       pin:'12345'
+      # request auth
+    when: ->
+      request(base+'/api/TestTournament/patterns/lkjfazakjds==')
+        .then (resp)->
+          expect(resp.statusCode).to.eql 200
+          expect(JSON.parse resp.body).to.eql pdoc
+
+
+  it "can return scores for the matches to be displayed on a leaderboard", ->
+    given: (a)->
+      a.tournament name:"TestTournament"
+    when: ->
+      request "#{base}/api/leaderboard"
+        .then (resp)->
+          expect(resp.statusCode).to.eql 200
+          expect(JSON.parse resp.body).to.be.an('object')
+          expect(JSON.parse resp.body).to.have.property('data')
+          expect(JSON.parse resp.body).has.a.property('data').which.is.an('array')
