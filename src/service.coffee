@@ -61,11 +61,17 @@ module.exports = (CGOL_HOME, settings)->
   service.get '/api/:tournament/patterns/:base64String', (req, res)->
     repo.getPatternByBase64ForTournament(req.params.base64String, req.params.tournament)
       .then (pdoc)->
-        if pdoc is not undefined
+        if pdoc != undefined
           res.statusCode = 200
           res.json pdoc
         else
-          res.statusCode = 404
+          pattern=
+            name:''
+            author:''
+            mail:''
+            elo:0
+            pin:0
+          res.status(404).json pattern
                
 
   service.post '/api/:tournament/patterns',jsonParser, (req, res)->
@@ -83,7 +89,7 @@ module.exports = (CGOL_HOME, settings)->
     mdoc = req.body.mdoc
     repo.saveMatch(mdoc, req.params.tournamentName)
       .then ->
-        res.status(200)
+        res.status(200).sendFile path.resolve __dirname, '..', 'static', 'index.html'
 
   service.get '/kiosk/leaderboard', (req, res) ->
     res.sendFile path.resolve __dirname, '..', 'static', 'leaderboard.html'

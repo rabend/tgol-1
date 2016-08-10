@@ -187,6 +187,25 @@ describe "The Repository",->
          expect(pattern3).to.be.undefinded
 
 
+  it "returns undefined if no pattern was found for the given base64 string", ->
+    tdoc = b.tournament
+    tdir = path.join CGOL_HOME, tdoc.name
+    mkdir tdir
+    pdir = path.join tdir, 'patterns'
+    mkdir pdir
+    pdoc1 = b.pattern
+      name:"TestPattern1"
+      author:"Mocha"
+      mail:"repo-spec1@tarent.de"
+      elo:1000
+      base64String:"abcdefg=="
+      pin:"12345"
+    expect(repository.savePattern(pdoc1, tdoc.name)).to.be.fulfilled.then ->
+      expect(repository.getPatternByBase64ForTournament("liuagasfd==", tdoc.name)).to.be.fulfilled.then (pattern)->
+        expect(pattern).to.eql undefined
+        expect(pattern).to.not.be.eql pdoc1
+
+
   it "can get an array of player information for the leaderboard", ->
     tdoc = b.tournament
     tdir = path.join CGOL_HOME, tdoc.name 

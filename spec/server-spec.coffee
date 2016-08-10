@@ -102,16 +102,31 @@ describe "The Service", ->
       expect(loadYaml pfile).to.eql pdoc
 
 
-  # it "can answer if a pattern has already been uploaded to a tournament", ->
-  #   this.timeout(5000)
-  #   request(base+'/api/TestTournament/patterns/lkjtewqfsdufafazakjds==')
-  #     .then (resp)->
-  #       expect(resp.statusCode).to.eql 200
-  #       expect(JSON.parse resp.body).to.eql pdoc
+  it "can request if a pattern has already been uploaded to a tournament and return an empty pattern if not", ->
+    expect(request(base+'/api/TestTournament/patterns/lkjtewqfsdufafazakjds==')).to.be.fulfilled.then (resp)->
+      expect(resp.statusCode).to.eql 404
+      expect(JSON.parse resp.body).to.eql
+        name:''
+        author:''
+        mail:''
+        elo:0
+        pin:0
+
+
+  it "can also request this and get the already uploaded pattern", ->
+    expect(request(base+'/api/TestTournament/patterns/lkjfazakjds==')).to.be.fulfilled.then (resp)->
+      expect(resp.statusCode).to.eql 200
+      expect(JSON.parse resp.body).to.eql
+        name:'MyPattern'
+        author:'John Doe'
+        mail:'john@tarent.de'
+        elo:1000
+        base64String:'lkjfazakjds=='
+        pin:'12345'
     
   
   it "can persist an uploaded match", ->
-    mdoc: 
+    mdoc= 
       id:'match_101'
       pattern1:
         name:'john@tarent.de'
