@@ -47,7 +47,7 @@ describe "The Repository",->
         name:tdoc.name
         pin:tdoc.pin
 
-      expect(loadYaml path.join patterndir, pdoc.mail+".yaml").to.eql pdoc for pdoc in tdoc.patterns
+      expect(loadYaml path.join patterndir, pdoc.author+".yaml").to.eql pdoc for pdoc in tdoc.patterns
       expect(loadYaml path.join matchdir, mdoc.id+".yaml").to.eql mdoc for mdoc in tdoc.matches
 
   it "can list the names of all tournaments", ->
@@ -73,10 +73,10 @@ describe "The Repository",->
       base64String:"abcdefg=="
       pin:"12345"
     expect(repository.savePattern(pdoc,tdoc.name)).to.be.fulfilled.then ->
-      pfile = path.join pdir, pdoc.mail+".yaml"
+      pfile = path.join pdir, pdoc.author+".yaml"
       expect(loadYaml pfile).to.eql pdoc
     
-  it "wont persist two patterns with the same mail addres", ->
+  it "wont persist two patterns with the same author name", ->
     tdoc = b.tournament
     tdir = path.join CGOL_HOME, tdoc.name
     mkdir tdir
@@ -91,14 +91,14 @@ describe "The Repository",->
       pin:"12345"
     pdoc2 = b.pattern
       name:"TestPattern2"
-      author:"Chai"
+      author:"Mocha"
       mail:"repo-spec@tarent.de"
       elo:1000
       base64String:"hjklmno=="
       pin:"12345"
     expect(repository.savePattern(pdoc1, tdoc.name)).to.be.fulfilled.then ->
       expect(repository.savePattern(pdoc2, tdoc.name)).to.be.rejected
-      expect(repository.savePattern(pdoc2,tdoc.name)).to.be.rejectedWith("Mail already in use!")
+      expect(repository.savePattern(pdoc2,tdoc.name)).to.be.rejectedWith("Nickname already in use!")
 
 
   it "can persist match data on the file system", ->
@@ -110,12 +110,12 @@ describe "The Repository",->
     mdoc = 
       id:'123'
       pattern1:
-        name:'test@tarent.de'
+        base64String:'kjadfajgkja=='
         translation:'1/3'
         modulo:3
         score:123
       pattern2:
-        name:'john@tarent.de'
+        base64String:'ahalkaiatsci='
         translation:'-6/-4'
         modulo:6
         score:456
@@ -215,3 +215,25 @@ describe "The Repository",->
     expect(repository.getScores(tdoc.name)).to.be.fulfilled.then (scores)->
       expect(scores).to.be.an('array')
       expect(scores[0]).to.have.a.property('score')
+
+
+  it "can get a collection of patterns and matches for a tournament", ->
+    tdoc = b.tournament
+      name:'TestTournament'
+      patterns:[
+        {name:'p1'}
+        {name:'p2'}
+      ]
+      matches:[
+        {id:'m1'}
+      ]
+    expect(repository.saveTournament(tdoc)).to.be.fulfilled.then ->
+      expect(repository.getPatternsAndMatchesForTournament(tdoc.name)).to.be.fulfilled.then (data)->
+        expect(data).to.be.an('object')
+        expect(data).to.have.a.property('patterns').which.is.an('array')
+        expect(data).to.have.a.property('matches').which.is.an('array')
+        expect(data.patterns).to.have.a.lengthOf 2
+        expect(data.matches).to.have.a.lengthOf 1
+        expect(data.patterns[0]).to.have.a.property('name').which.is.eql 'p1'
+        expect(data.matches[0]).to.have.a.property('id').which.is.eql 'm1'
+

@@ -14,10 +14,10 @@ module.exports = (CGOL_HOME, settings)->
   savePattern = (pdoc, tournamentName)->
     tdir = path.join CGOL_HOME, tournamentName
     pdir = path.join tdir, 'patterns'
-    pfile = path.join pdir, pdoc.mail+".yaml"
-    isMailAlreadyInUse(pdoc.mail).then (val)->
+    pfile = path.join pdir, pdoc.author+".yaml"
+    isAuthorNameAlreadyInUse(pdoc.author).then (val)->
       if val
-        throw new Error('Mail already in use!')
+        throw new Error('Nickname already in use!')
       else
         writeFile pfile, dump 
           name:pdoc.name
@@ -35,12 +35,12 @@ module.exports = (CGOL_HOME, settings)->
     writeFile mfile, dump 
       id: mdoc.id
       pattern1:
-        name:mdoc.pattern1.name
+        base64String:mdoc.pattern1.base64String
         translation:mdoc.pattern1.translation
         modulo:mdoc.pattern1.modulo
         score:mdoc.pattern1.score
       pattern2:
-        name:mdoc.pattern2.name
+        base64String:mdoc.pattern2.base64String
         translation:mdoc.pattern2.translation
         modulo:mdoc.pattern2.modulo
         score:mdoc.pattern2.score
@@ -93,7 +93,25 @@ module.exports = (CGOL_HOME, settings)->
           if file.base64String == base64String
             return file
         return undefined
-            
+
+
+  getPatternsAndMatchesForTournament = (tournamentName)->
+    pdir = path.join CGOL_HOME, tournamentName, 'patterns'
+    mdir = path.join CGOL_HOME, tournamentName, 'matches'
+    data=
+      patterns:[]
+      matches:[]
+    readdir root:pdir, depth:0, entryType:'files'
+      .then (entryStreamPatterns)->
+        data.patterns = entryStreamPatterns.files
+          .map (entryPattern)->
+            loadYaml entryPattern.fullPath
+    readdir root:mdir, depth:0, entryType:'files'
+      .then (entryStreamMatches)->
+        data.matches = entryStreamMatches.files
+          .map (entryMatch)->
+            loadYaml entryMatch.fullPath
+          data   
 
   getScores = (tournamentName)->
     mdir = path.join CGOL_HOME, tournamentName, 'matches'
@@ -112,12 +130,12 @@ module.exports = (CGOL_HOME, settings)->
         data
         
 
-  isMailAlreadyInUse = (mail)->
+  isAuthorNameAlreadyInUse = (author)->
     readdir root:CGOL_HOME, entryType: 'files'
     .then (entryStream)->
       files = entryStream.files
         .map (entry)->entry.name
-      mail+'.yaml' in files
+      author+'.yaml' in files
 
 
   allTournaments: allTournaments
@@ -126,4 +144,5 @@ module.exports = (CGOL_HOME, settings)->
   saveMatch:saveMatch
   getPatternsForTournament:getPatternsForTournament
   getPatternByBase64ForTournament:getPatternByBase64ForTournament
+  getPatternsAndMatchesForTournament:getPatternsAndMatchesForTournament
   getScores:getScores

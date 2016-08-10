@@ -25,12 +25,12 @@ module.exports = ->
     defaults=
       id:"match_"+matches.length
       pattern1:
-        name:'pattern1'
+        base64String:'pattern1'
         translation:"1/1"
         modulo:0
         score:0
       pattern2:
-        name:'pattern2'
+        base64String:'pattern2'
         translation:"2/2"
         modulo:1
         score:0
@@ -41,7 +41,7 @@ module.exports = ->
   pattern = ()->
     defaults=
       name:"pattern_"+patterns.length
-      author:"someone"
+      author:"someone_"+patterns.length
       mail:"gol"+patterns.length+"@tarent.de"
       elo:100
       base64String:"abcdef=="

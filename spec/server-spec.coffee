@@ -46,12 +46,32 @@ describe "The Service", ->
         tdoc = builder.tournament
           name:'TestTournament'
           patterns:[
-            name:'MyPattern'
+            {name:'MyPattern'
             author:'John Doe'
             mail:'john@tarent.de'
             elo:1000
             base64String:'lkjfazakjds=='
-            pin:'12345'
+            pin:'12345'}
+            {name:'MyOtherPattern'
+            author:'Jonathan Doe'
+            mail:'jonathan@tarent.de'
+            elo:1000
+            base64String:'iuzaiszdgig=='
+            pin:'12345'}
+          ]
+          matches:[
+            id:'match1'
+            pattern1:
+              base64String:'lkjfazakjds=='
+              translation:'1/1'
+              modulo:1
+              score:100
+            pattern2:
+              base64String:'iuzaiszdgig=='
+              translation:'2/2'
+              modulo:2
+              score:200
+            pin:45678
           ]
         repo.saveTournament(tdoc).then ->
           server = Server CGOL_HOME, settings
@@ -80,7 +100,7 @@ describe "The Service", ->
   it "can persist an uploaded pattern", ->
     pdoc=
       name:'MyPattern'
-      author:'John Doe'
+      author:'Joanne Doe'
       mail:'uploaded@tarent.de'
       elo:1000
       base64String:'lkjfazakjds=='
@@ -91,14 +111,14 @@ describe "The Service", ->
       json:
         pdoc:
           name:'MyPattern'
-          author:'John Doe'
+          author:'Joanne Doe'
           mail:'uploaded@tarent.de'
           elo:1000
           base64String:'lkjfazakjds=='
           pin:'12345'
     expect(request auth).to.be.fulfilled.then (resp)->
       expect(resp.statusCode).to.eql 200
-      pfile = path.join CGOL_HOME, 'TestTournament', 'patterns', pdoc.mail+'.yaml'
+      pfile = path.join CGOL_HOME, 'TestTournament', 'patterns', pdoc.author+'.yaml'
       expect(loadYaml pfile).to.eql pdoc
 
 
@@ -129,12 +149,12 @@ describe "The Service", ->
     mdoc= 
       id:'match_101'
       pattern1:
-        name:'john@tarent.de'
+        base64String:'kjafdscaASDasdkjaA'
         translation:'-1/4'
         modulo:3
         score:0
       pattern2:
-        name:'test@tarent.de'
+        base64String:'ASDlkajsdazASDalksmAS'
         translation:'5/-8'
         modulo:7
         score:0
@@ -146,12 +166,12 @@ describe "The Service", ->
         mdoc:
          id:'match_101'
          pattern1:
-           name:'john@tarent.de'
+           base64String:'kjafdscaASDasdkjaA'
            translation:'-1/4'
            modulo:3
            score:0
          pattern2:
-           name:'test@tarent.de'
+           base64String:'ASDlkajsdazASDalksmAS'
            translation:'5/-8'
            modulo:7
            score:0
@@ -171,3 +191,31 @@ describe "The Service", ->
         expect(JSON.parse(resp.body)[0]).to.be.an('object').which.has.a.property('name')
         expect(JSON.parse(resp.body)[0]).to.be.an('object').which.has.a.property('games')
         
+
+  it "can get a collection of all patterns and matches in a tournament", ->
+    expect(request(base+'/api/TestTournament')).to.be.fulfilled.then (resp)->
+      expect(resp.statusCode).to.eql 200
+      expect(JSON.parse resp.body).to.have.a.property('patterns').which.is.an('array')
+      expect(JSON.parse resp.body).to.have.a.property('matches').which.is.an('array')
+      expect(JSON.parse(resp.body).patterns).to.have.a.lengthOf 2
+      expect(JSON.parse(resp.body).matches).to.have.a.lengthOf 1
+      expect(JSON.parse(resp.body).patterns[0]).to.eql
+        name:'MyPattern'
+        author:'John Doe'
+        mail:'john@tarent.de'
+        elo:1000
+        base64String:'lkjfazakjds=='
+        pin:'12345'
+      expect(JSON.parse(resp.body).matches[0]).to.eql
+        id:'match1'
+        pattern1:
+          base64String:'lkjfazakjds=='
+          translation:'1/1'
+          modulo:1
+          score:100
+        pattern2:
+          base64String:'iuzaiszdgig=='
+          translation:'2/2'
+          modulo:2
+          score:200
+        pin:45678
