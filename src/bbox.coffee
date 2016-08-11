@@ -15,6 +15,8 @@ module.exports = class BBox
   top:null
   bottom:null
   right:null
+  width: -> @right - @left
+  height: -> @bottom - @top
   add: ([x,y])->
     @left = x if not @left? or @left > x
     @right = x + 1 if not @right? or @right < x + 1

@@ -18,7 +18,7 @@ body * {
 }
 
 input, textarea, select,button {
-  border: none;
+  border: pink 1px solid;
   padding: 0.5em;
   font-size: 15px;
   line-height: 1.2em;
@@ -82,6 +82,14 @@ svg {
 }
 
 .cell {
+  fill: grey;
+  stroke: white;
+}
+.cell.black {
+  fill: red;
+  stroke: white;
+}
+.cell.white {
   fill: blue;
   stroke: white;
 }
