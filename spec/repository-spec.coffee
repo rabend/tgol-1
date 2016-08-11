@@ -125,7 +125,7 @@ describe "The Repository",->
       expect(loadYaml mfile).to.eql mdoc      
 
 
-  it "can load an array of pattern documents from the file system", ->
+  it "can load an array of all pattern documents from the file system", ->
     tdoc = b.tournament
     tdir = path.join CGOL_HOME, tdoc.name
     mkdir tdir

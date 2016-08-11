@@ -18,6 +18,9 @@ describe "The Service", ->
   builder = undefined
   repo = undefined
   pdoc = undefined
+
+  this.timeout(0)
+
   property = (name)->(obj)->obj[name]
 
   example = (gwt)->
@@ -55,9 +58,15 @@ describe "The Service", ->
             {name:'MyOtherPattern'
             author:'Jonathan Doe'
             mail:'jonathan@tarent.de'
-            elo:1000
+            elo:1100
             base64String:'iuzaiszdgig=='
             pin:'12345'}
+            {name:'Ridiculously Strong Pattern'
+            author:'Jane Doe'
+            mail:'jane@tarent.de'
+            elo:9001
+            base64String:'ItsOver9000OMG='
+            pin:'98765'}
           ]
           matches:[
             id:'match1'
@@ -197,16 +206,16 @@ describe "The Service", ->
       expect(resp.statusCode).to.eql 200
       expect(JSON.parse resp.body).to.have.a.property('patterns').which.is.an('array')
       expect(JSON.parse resp.body).to.have.a.property('matches').which.is.an('array')
-      expect(JSON.parse(resp.body).patterns).to.have.a.lengthOf 2
+      expect(JSON.parse(resp.body).patterns).to.have.a.lengthOf 3
       expect(JSON.parse(resp.body).matches).to.have.a.lengthOf 1
-      expect(JSON.parse(resp.body).patterns[0]).to.eql
+      expect(JSON.parse(resp.body).patterns).to.include
         name:'MyPattern'
         author:'John Doe'
         mail:'john@tarent.de'
         elo:1000
         base64String:'lkjfazakjds=='
         pin:'12345'
-      expect(JSON.parse(resp.body).matches[0]).to.eql
+      expect(JSON.parse(resp.body).matches).to.include
         id:'match1'
         pattern1:
           base64String:'lkjfazakjds=='
@@ -219,3 +228,30 @@ describe "The Service", ->
           modulo:2
           score:200
         pin:45678
+
+
+  it "can request two equally strong patterns to form the next match", ->
+    expect(request(base+'/api/TestTournament/matchmaker')).to.be.fulfilled.then (resp)->
+      expect(resp.statusCode).to.eql 200
+      expect(JSON.parse resp.body).to.be.an('array').which.has.lengthOf 2
+      expect(JSON.parse resp.body).to.include
+        name:'MyPattern'
+        author:'John Doe'
+        mail:'john@tarent.de'
+        elo:1000
+        base64String:'lkjfazakjds=='
+        pin:'12345'
+      expect(JSON.parse resp.body).to.include
+        name:'MyOtherPattern'
+        author:'Jonathan Doe'
+        mail:'jonathan@tarent.de'
+        elo:1100
+        base64String:'iuzaiszdgig=='
+        pin:'12345'
+      expect(JSON.parse resp.body).to.not.include
+        name:'Ridiculously Strong Pattern'
+        author:'Jane Doe'
+        mail:'jane@tarent.de'
+        elo:9001
+        base64String:'ItsOver9000OMG='
+        pin:'98765'

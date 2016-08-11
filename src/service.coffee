@@ -7,6 +7,8 @@ module.exports = (CGOL_HOME, settings)->
   repo = Repository CGOL_HOME, settings
   bodyParser = require "body-parser"
   jsonParser = bodyParser.json()
+  Matchmaker = require './matchmaker'
+  matchmaker = Matchmaker()
 
   packageJson = require "../package.json"
   service = Express()
@@ -40,7 +42,6 @@ module.exports = (CGOL_HOME, settings)->
 
   # static assets
   service.use Express.static('static')
-
 
   # service root
   # TODO: move api routes to a separate module?
@@ -92,6 +93,12 @@ module.exports = (CGOL_HOME, settings)->
         res.status(200).sendFile path.resolve __dirname, '..', 'static', 'index.html'
 
 
+  service.get '/api/:tournamentName/matchmaker', (req, res)->
+    repo.getPatternsForTournament(req.params.tournamentName).then (patterns)->
+      pair = matchmaker.matchForElo(patterns)
+      res.status(200).json pair
+
+
   service.get '/api/:tournamentName', (req, res)->
     repo.getPatternsAndMatchesForTournament(req.params.tournamentName).then (data)->
       res.status(200).json data
@@ -104,7 +111,7 @@ module.exports = (CGOL_HOME, settings)->
   service.get '/editor', (req, res)->
     res.sendFile path.resolve __dirname, '..', 'static', 'index.html'
 
-  # for everything else, just return index.html
+  # for everything else, just return landingpage.html
   # so client-side routing works smoothly
   service.get '*',  (request, response)->
     response.sendFile path.resolve __dirname, '..', 'static', 'landingpage.html'

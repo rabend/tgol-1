@@ -101,17 +101,19 @@ module.exports = (CGOL_HOME, settings)->
     data=
       patterns:[]
       matches:[]
-    readdir root:pdir, depth:0, entryType:'files'
+    Promise.all([
+      readdir root:pdir, depth:0, entryType:'files'
       .then (entryStreamPatterns)->
         data.patterns = entryStreamPatterns.files
           .map (entryPattern)->
             loadYaml entryPattern.fullPath
-    readdir root:mdir, depth:0, entryType:'files'
-      .then (entryStreamMatches)->
-        data.matches = entryStreamMatches.files
-          .map (entryMatch)->
-            loadYaml entryMatch.fullPath
-          data   
+      readdir root:mdir, depth:0, entryType:'files'
+        .then (entryStreamMatches)->
+          data.matches = entryStreamMatches.files
+            .map (entryMatch)->
+              loadYaml entryMatch.fullPath
+    ]).then ->
+      data   
 
   getScores = (tournamentName)->
     mdir = path.join CGOL_HOME, tournamentName, 'matches'
